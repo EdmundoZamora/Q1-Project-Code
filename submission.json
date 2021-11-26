@@ -1,0 +1,4 @@
+{
+    "edzamora":"edzamora/tweetynet-project:latest", 
+    "build-script":"python run.py data features model"    
+}
