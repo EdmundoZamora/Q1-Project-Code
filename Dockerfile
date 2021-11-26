@@ -21,9 +21,12 @@ USER root
 
 RUN apt-get -y install 
 
+
 # 3) install packages using notebook user
 USER jovyan 
 
 # RUN conda install -y scikit-learn
 
 RUN pip install --no-cache-dir pandas numpy vak scipy torch librosa sox multipledispatch 
+RUN git clone https://github.com/EdmundoZamora/Methodology5.git
+WORKDIR /Methodology5
