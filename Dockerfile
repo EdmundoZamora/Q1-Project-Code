@@ -26,4 +26,4 @@ USER jovyan
 
 # RUN conda install -y scikit-learn
 
-RUN pip install --no-cache-dir pandas numpy vak scipy pytorch librosa sox multipledispatch 
+RUN pip install --no-cache-dir pandas numpy vak scipy torch librosa sox multipledispatch 
