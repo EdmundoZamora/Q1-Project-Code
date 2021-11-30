@@ -48,7 +48,6 @@ def main(targets):
             eval_cfg = json.load(fh)
         # evaluates and stores csvs to out/
         evaluate(model, test_dataset, date_str, **eval_cfg)
-    
 
     return
 
