@@ -25,8 +25,11 @@ RUN apt-get -y install
 # 3) install packages using notebook user
 USER jovyan 
 
-# RUN conda install -y scikit-learn
-
+# RUN conda install -y environment dependencies seen on environment.yaml
 RUN pip install --no-cache-dir pandas numpy vak scipy torch librosa sox multipledispatch 
+
+# clone the repository and switch working directory to run the methodology.
 RUN git clone https://github.com/EdmundoZamora/Methodology5.git
-WORKDIR /Methodology5
+
+# spin the container and find the directory. Troubleshoot the run.py
+WORKDIR /methodology5

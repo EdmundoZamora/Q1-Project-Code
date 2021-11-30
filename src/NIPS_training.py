@@ -218,11 +218,18 @@ def model_build(all_tags, n_mels, train_dataset, val_dataset, lr, batch_size, ep
     train = True
     fineTuning = False
     
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print('Using {} device'.format(device))
+    #device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     cwd = os.getcwd() 
     os.chdir(outdir)
+
+    if torch.cuda.is_available(): #get this to work, does not detect gpu
+        device = "cuda"
+    else:
+        device = "cpu"
+        
+    print(f"Using {device} device")
+    print('Using {} device'.format(device))
 
     tweetynet = TweetyNetModel(len(Counter(all_tags)), (1, n_mels, 216), device, binary=False)
 
@@ -238,7 +245,7 @@ def model_build(all_tags, n_mels, train_dataset, val_dataset, lr, batch_size, ep
 
     return tweetynet, date_str
 
-def evaluate(model,test_dataset, date_str,outdir): # How can we evaluauate on a specific wav file though?? and show time in the csv?
+def evaluate(model,test_dataset, date_str,outdir): # How can we evaluauate on a specific wav file though?? and show time in the csv? and time on a spectrorgam? ¯\_(ツ)_/¯
     
     model_weights = os.path.join(outdir,f"model_weights-{date_str}.h5") # time sensitive file title
     tweetynet = model

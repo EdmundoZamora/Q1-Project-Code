@@ -10,6 +10,7 @@ sys.path.insert(0, 'src')
 # function that builds the model DONE
 # results go into separate files 
 # perform on a docker container <-- current challenge
+# get cuda to work.
 
 import env_setup
 from etl import get_data
@@ -32,13 +33,13 @@ def main(targets):
         data = get_data(**data_cfg)
 
     if 'features' in targets:
-        with open('config/load_dataset-params.json') as fh:
+        with open('config/features-params.json') as fh:
             feats_cfg = json.load(fh)
 
         all_tags, n_mels, train_dataset, val_dataset, test_dataset  = apply_features(data, **feats_cfg)
 
-    if 'model' in targets:                              
-        with open('config/nips-model-params.json') as fh:
+    if 'model' in targets:                              # get cuda to work, GPU to work.
+        with open('config/model-params.json') as fh:
             model_cfg = json.load(fh)
         # make the data target, set outputs to data/temp though, only pickle works, managed to get most, 1 missing
         model, date_str = model_build(all_tags, n_mels, train_dataset, val_dataset, **model_cfg)
@@ -54,6 +55,6 @@ def main(targets):
 
 if __name__ == '__main__':
     # run via:
-    # python main.py data features model
+    # python run.py data features model evaluate
     targets = sys.argv[1:]
     main(targets)
