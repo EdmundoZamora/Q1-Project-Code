@@ -23,9 +23,8 @@ def main(targets):
     `main` runs the targets in order of data=>analysis=>model.
     '''
 
-    env_setup.make_datadir() # removes each time, handles manually deleting
-
-    if 'data' in targets:                           
+    if 'data' in targets:      
+        env_setup.make_datadir() # removes each time, handles manually deleting                     
         with open('config/data-params.json') as fh:
             data_cfg = json.load(fh)
 
@@ -42,13 +41,13 @@ def main(targets):
         with open('config/nips-model-params.json') as fh:
             model_cfg = json.load(fh)
         # make the data target, set outputs to data/temp though, only pickle works, managed to get most, 1 missing
-        model = model_build(all_tags, n_mels, train_dataset, val_dataset, **model_cfg)
+        model, date_str = model_build(all_tags, n_mels, train_dataset, val_dataset, **model_cfg)
     
     if 'evaluate' in targets:                              
         with open('config/evaluate-params.json') as fh:
             eval_cfg = json.load(fh)
         # evaluates and stores csvs to out/
-        evaluate(model,test_dataset, **eval_cfg)
+        evaluate(model, test_dataset, date_str, **eval_cfg)
     
 
     return

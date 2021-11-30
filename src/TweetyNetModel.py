@@ -145,7 +145,7 @@ class TweetyNetModel:
         # os.chdir(outdir) 
         self.print_results(history)  # save to out, saves to wd. works
         #os.chdir(cwd)
-        return history, test_out, start_time, end_time
+        return history, test_out, start_time, end_time, date_str
 
 
 
@@ -299,6 +299,7 @@ class TweetyNetModel:
     def test_load_step(self, test_dataset, batch_size=64, model_weights=None):
         if model_weights != None:
             self.model.load_state_dict(torch.load(model_weights))
+            
         test_data_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
         test_out = self.testing_step(test_data_loader)
         return test_out

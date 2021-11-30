@@ -178,7 +178,7 @@ def load_dataset(data_path, folder, SR, n_mels, frame_size, hop_length, nonBird_
 def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, nonBird_labels, found):
     train = True
     fineTuning = False
-    print("IGNORE MISSING WAV FILES-THEY DONT EXIST")
+    print("IGNORE MISSING WAV FILES - THEY DONT EXIST")
     # load_data_set returns variables which get fed into model builder 
     X, Y, uids = load_dataset(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, nonBird_labels, found, use_dump=True)
     test_dataset = CustomAudioDataset(X, Y, uids)
@@ -226,7 +226,7 @@ def model_build(all_tags, n_mels, train_dataset, val_dataset, lr, batch_size, ep
 
     tweetynet = TweetyNetModel(len(Counter(all_tags)), (1, n_mels, 216), device, binary=False)
 
-    history, test_out, start_time, end_time = tweetynet.train_pipeline(train_dataset,val_dataset, None,
+    history, test_out, start_time, end_time, date_str = tweetynet.train_pipeline(train_dataset,val_dataset, None,
                                                                        lr=lr, batch_size=batch_size,epochs=epochs, save_me=True,
                                                                        fine_tuning=False, finetune_path=None, outdir=outdir)
     print("Training time:", end_time-start_time)
@@ -236,14 +236,12 @@ def model_build(all_tags, n_mels, train_dataset, val_dataset, lr, batch_size, ep
     with open(os.path.join(outdir,"nips_history.pkl"), 'wb') as f:   # where does this go??? it has to end up in data/out
         pickle.dump(history, f, pickle.HIGHEST_PROTOCOL) 
 
-    return tweetynet
+    return tweetynet, date_str
 
-def evaluate(model,test_dataset,outdir): # How can we evaluauate on a specific wav file though?? and show time?
-
-    date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-    modelweights = f"model_weights-{date_str}.h5"
-
+def evaluate(model,test_dataset, date_str,outdir): # How can we evaluauate on a specific wav file though?? and show time in the csv?
+    
+    model_weights = os.path.join(outdir,f"model_weights-{date_str}.h5") # time sensitive file title
     tweetynet = model
-    test_out = tweetynet.test_load_step(test_dataset, model_weights= os.path.join(outdir, modelweights)) 
-    test_out.to_csv(os.path.join(outdir,"Evaluation_on_nips.csv"))
+    test_out = tweetynet.test_load_step(test_dataset, model_weights=model_weights) 
+    test_out.to_csv(os.path.join(outdir,"Evaluation_on_data.csv"))
     return 
