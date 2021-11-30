@@ -9,8 +9,8 @@ sys.path.insert(0, 'src')
 # function that applies the features DONE
 # function that builds the model DONE
 # results go into separate files 
-# perform on a docker container <-- current challenge
-# get cuda to work.
+# perform on a docker container <-- current challenge CURR
+# get cuda to work. works on tweety, slow on gpu if epochs low?
 
 import env_setup
 from etl import get_data
@@ -38,7 +38,7 @@ def main(targets):
 
         all_tags, n_mels, train_dataset, val_dataset, test_dataset  = apply_features(data, **feats_cfg)
 
-    if 'model' in targets:                              # get cuda to work, GPU to work.
+    if 'model' in targets:                              # get cuda to work, GPU to work. cuda available in tweety env
         with open('config/model-params.json') as fh:
             model_cfg = json.load(fh)
         # make the data target, set outputs to data/temp though, only pickle works, managed to get most, 1 missing

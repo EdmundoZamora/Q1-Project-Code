@@ -1,9 +1,10 @@
-name: species-id
+name: species-id # use tweety environment? allows gpu...
 channels:
   - conda-forge
   - defaults
 dependencies:
   - python=3.7.9
+  - pytorch
   - jupyter
   - matplotlib=3.3.1
   - numpy=1.19.1
@@ -13,6 +14,5 @@ dependencies:
   - sox
   - multipledispatch
   - pandas
-  - pytorch
   - pip
 prefix: /home/e4e/anaconda3/envs/species-id

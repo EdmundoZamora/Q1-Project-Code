@@ -223,10 +223,11 @@ def model_build(all_tags, n_mels, train_dataset, val_dataset, lr, batch_size, ep
     cwd = os.getcwd() 
     os.chdir(outdir)
 
-    if torch.cuda.is_available(): #get this to work, does not detect gpu
-        device = "cuda"
-    else:
-        device = "cpu"
+    # if torch.cuda.is_available(): #get this to work, does not detect gpu. works on tweety env(slow)
+    #     device = "cuda"
+    # else:
+    #     device = "cpu"
+    device = "cpu"
         
     print(f"Using {device} device")
     print('Using {} device'.format(device))
