@@ -136,7 +136,7 @@ class TweetyNetModel:
             test_data_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
             test_out = self.testing_step(test_data_loader)
 
-        if save_me:
+        if save_me: # save to temp?
             date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
             # torch.save(self.model.state_dict(), os.path.join(outdir,f"model_weights-{date_str}.h5"))
             torch.save(self.model.state_dict(), f"model_weights-{date_str}.h5")

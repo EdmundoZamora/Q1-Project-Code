@@ -13,7 +13,7 @@ sys.path.insert(0, 'src')
 
 import env_setup
 from etl import get_data
-from NIPS_training import apply_features, model_build
+from NIPS_training import apply_features, model_build, evaluate
 
 def main(targets):
     '''
@@ -36,13 +36,20 @@ def main(targets):
         with open('config/load_dataset-params.json') as fh:
             feats_cfg = json.load(fh)
 
-        all_tags, n_mels, train_dataset, val_dataset  = apply_features(data, **feats_cfg)
+        all_tags, n_mels, train_dataset, val_dataset, test_dataset  = apply_features(data, **feats_cfg)
 
     if 'model' in targets:                              
         with open('config/nips-model-params.json') as fh:
             model_cfg = json.load(fh)
-        # make the data target, set outputs to data/out though, only pickle works, managed to get most, 1 missing
-        model_build(all_tags, n_mels, train_dataset, val_dataset, **model_cfg)
+        # make the data target, set outputs to data/temp though, only pickle works, managed to get most, 1 missing
+        model = model_build(all_tags, n_mels, train_dataset, val_dataset, **model_cfg)
+    
+    if 'evaluate' in targets:                              
+        with open('config/evaluate-params.json') as fh:
+            eval_cfg = json.load(fh)
+        # evaluates and stores csvs to out/
+        evaluate(model,test_dataset, **eval_cfg)
+    
 
     return
 

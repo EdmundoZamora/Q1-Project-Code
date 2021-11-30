@@ -181,6 +181,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     print("IGNORE MISSING WAV FILES-THEY DONT EXIST")
     # load_data_set returns variables which get fed into model builder 
     X, Y, uids = load_dataset(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, nonBird_labels, found, use_dump=True)
+    test_dataset = CustomAudioDataset(X, Y, uids)
 
     pos, total = 0,0
     #remove green and red labels
@@ -210,7 +211,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     #test_dataset = CustomAudioDataset(X_test[:6], Y_test[:6], uids_test[:6])
     val_dataset = CustomAudioDataset(X_val, Y_val, uids_val)
 
-    return all_tags, n_mels, train_dataset, val_dataset 
+    return all_tags, n_mels, train_dataset, val_dataset, test_dataset
 
 
 def model_build(all_tags, n_mels, train_dataset, val_dataset, lr, batch_size, epochs, outdir):
@@ -235,4 +236,14 @@ def model_build(all_tags, n_mels, train_dataset, val_dataset, lr, batch_size, ep
     with open(os.path.join(outdir,"nips_history.pkl"), 'wb') as f:   # where does this go??? it has to end up in data/out
         pickle.dump(history, f, pickle.HIGHEST_PROTOCOL) 
 
-    return
+    return tweetynet
+
+def evaluate(model,test_dataset,outdir): # How can we evaluauate on a specific wav file though?? and show time?
+
+    date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+    modelweights = f"model_weights-{date_str}.h5"
+
+    tweetynet = model
+    test_out = tweetynet.test_load_step(test_dataset, model_weights= os.path.join(outdir, modelweights)) 
+    test_out.to_csv(os.path.join(outdir,"Evaluation_on_nips.csv"))
+    return 
