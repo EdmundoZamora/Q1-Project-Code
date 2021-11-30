@@ -24,10 +24,8 @@ USER root
 # RUN apt-get -y install feh
 # RUN apt-get -y install X
 
-
 # 3) install packages using notebook user
 USER jovyan 
-
 # RUN conda install -y environment dependencies seen on environment.yaml
 # RUN pip install --no-cache-dir pandas numpy vak scipy torch librosa sox multipledispatch 
 RUN conda env create -f tweety.yaml
