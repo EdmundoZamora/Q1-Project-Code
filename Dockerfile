@@ -41,5 +41,5 @@ WORKDIR Methodology5
 #RUN conda activate tweety
 # run command or entrypoint
 # ENTRYPOINT [ "executable" ]
-# CMD [ "python","-u", "run.py", "data", "features", "model", "evaluate" ]
+CMD [ "python","-u", ".\run.py", "data", "features", "model", "evaluate" ]
 # spin the container and find the directory. Troubleshoot the run.py
