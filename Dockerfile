@@ -27,7 +27,7 @@ USER root
 # 3) install packages using notebook user
 USER jovyan 
 # RUN conda install -y environment dependencies seen on environment.yaml
-# RUN pip install --no-cache-dir pandas numpy vak scipy torch librosa sox multipledispatch 
+RUN pip install --no-cache-dir pandas numpy vak scipy torch librosa sox multipledispatch 
 # clone the repository and switch working directory to run the methodology.
 # make repo directory
 #RUN mkdir -p ~/repos
@@ -36,9 +36,10 @@ USER jovyan
 # clone git repository
 RUN git clone https://github.com/EdmundoZamora/Methodology5.git
 # cd into Methodology directory in the repos directory.
-WORKDIR ~/Methodology5
-RUN conda env create -f tweety.yaml
-RUN conda activate tweety
-# run command
-CMD [ "python","-u", "run.py", "data", "features", "model", "evaluate" ]
+WORKDIR Methodology5
+#RUN conda env create -f tweety.yaml
+#RUN conda activate tweety
+# run command or entrypoint
+# ENTRYPOINT [ "executable" ]
+# CMD [ "python","-u", "run.py", "data", "features", "model", "evaluate" ]
 # spin the container and find the directory. Troubleshoot the run.py
