@@ -26,10 +26,8 @@ from torch.utils.data import Dataset
 from CustomAudioDataset import CustomAudioDataset
 from TweetyNetModel import TweetyNetModel
 
-import joblib
-
 def get_frames(x, frame_size, hop_length):
-    return ((x) / hop_length) + 1#(x - frame_size)/hop_length + 1
+    return ((x) / hop_length) + 1 #(x - frame_size)/hop_length + 1
 def frames2seconds(x, sr):
     return x/sr
 def find_tags(data_path, folder):
@@ -211,18 +209,21 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     #test_dataset = CustomAudioDataset(X_test[:6], Y_test[:6], uids_test[:6])
     val_dataset = CustomAudioDataset(X_val, Y_val, uids_val)
 
-    return all_tags, n_mels, train_dataset, val_dataset, test_dataset
+    return all_tags, n_mels, train_dataset, val_dataset, test_dataset, HOP_LENGTH, SR
 
 
-def model_build(all_tags, n_mels, train_dataset, val_dataset, lr, batch_size, epochs, outdir):
+def model_build(all_tags, n_mels, train_dataset, val_dataset,Skip, lr, batch_size, epochs, outdir):
     train = True
     fineTuning = False
+    
+    if Skip:
+        for f in os.listdir(outdir):
+            os.remove(os.path.join(outdir, f))
     
     #device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     cwd = os.getcwd() 
     os.chdir(outdir)
-
     # if torch.cuda.is_available(): #get this to work, does not detect gpu. works on tweety env(slow)
     #     device = "cuda"
     # else:
@@ -246,10 +247,11 @@ def model_build(all_tags, n_mels, train_dataset, val_dataset, lr, batch_size, ep
 
     return tweetynet, date_str
 
-def evaluate(model,test_dataset, date_str,outdir): # How can we evaluauate on a specific wav file though?? and show time in the csv? and time on a spectrorgam? ¯\_(ツ)_/¯
+def evaluate(model,test_dataset, date_str, hop_length, sr, outdir): # How can we evaluauate on a specific wav file though?? and show time in the csv? and time on a spectrorgam? ¯\_(ツ)_/¯
     
     model_weights = os.path.join(outdir,f"model_weights-{date_str}.h5") # time sensitive file title
     tweetynet = model
-    test_out = tweetynet.test_load_step(test_dataset, model_weights=model_weights) 
+    test_out, time_segs = tweetynet.test_load_step(test_dataset, hop_length, sr, model_weights=model_weights) 
     test_out.to_csv(os.path.join(outdir,"Evaluation_on_data.csv"))
-    return 
+    time_segs.to_csv(os.path.join(outdir,"Time_intervals.csv"))
+    return print("Finished Classifcation")

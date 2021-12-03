@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from network import TweetyNet
 from EvaluationFunctions import frame_error, syllable_edit_distance
 #from microfaune.audio import wav2spc, create_spec, load_wav
-from TweetyNetAudio import wav2spc, create_spec, load_wav
+from TweetyNetAudio import wav2spc, create_spec, load_wav, get_time
 from CustomAudioDataset import CustomAudioDataset
 from datetime import datetime
 
@@ -259,9 +259,14 @@ class TweetyNetModel:
     output: predictins that the model made
     purpose: Evaluate our model on a test set
     """
-    def testing_step(self, test_loader):
+    def testing_step(self, test_loader, hop_length, sr):
         predictions = pd.DataFrame()
         self.model.eval()
+
+        st_time = []
+        for i in range(216): # will change to be more general, does it only for one trainfile?
+            st_time.append(get_time(i, hop_length, sr))
+
         with torch.no_grad():
             for i, data in enumerate(test_loader):
                 inputs, labels, uids = data
@@ -273,22 +278,36 @@ class TweetyNetModel:
 
                 output = self.model(inputs, inputs.shape[0], labels.shape[0])
                 temp_uids = []
-                if self.binary:
+                files = []
+                if self.binary: # weakly labeled
                     labels = torch.from_numpy((np.array([[x] * output.shape[-1] for x in labels])))
                     temp_uids = np.array([[x] * output.shape[-1] for x in uids])
-                else:
+                    files.append(u)
+                else:  # in the case of strongly labeled data
                     for u in uids:
                         for j in range(output.shape[-1]):
                              temp_uids.append(str(j) + "_" + u)
+                             files.append(u)
                     temp_uids = np.array(temp_uids)
                 zero_pred = output[:, 0, :]
                 one_pred = output[:, 1, :]
                 pred = torch.argmax(output, dim=1)
-                d = {"uid": temp_uids.flatten(), "zero_pred": zero_pred.flatten(), "one_pred": one_pred.flatten(), "pred": pred.flatten(), "label": labels.flatten()}
+                d = {"uid": temp_uids.flatten(),"file":files, "zero_pred": zero_pred.flatten(), "one_pred": one_pred.flatten(), "pred": pred.flatten(),"label": labels.flatten()}
                 new_preds = pd.DataFrame(d)
+
                 predictions = predictions.append(new_preds)
+
+                tim = {"temporal_frame": st_time}
+                time_secs = pd.DataFrame(tim)
+
+                nu_time = pd.concat([time_secs]*425, ignore_index=True)
+
+                extracted_col = nu_time["temporal_frame"]
+                
+                predictions_timed = predictions.join(extracted_col)
+
         print('Finished Testing')
-        return predictions
+        return predictions_timed, time_secs
 
     """
     Function: test_load_step
@@ -296,12 +315,12 @@ class TweetyNetModel:
     output: test_out are the predictions the model made.
     purpose: Allow us to load older model weights and evaluate predictions
     """
-    def test_load_step(self, test_dataset, batch_size=64, model_weights=None):
+    def test_load_step(self, test_dataset, hop_length, sr, batch_size=64,model_weights=None):
         if model_weights != None:
             self.model.load_state_dict(torch.load(model_weights))
             
         test_data_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
-        test_out = self.testing_step(test_data_loader)
+        test_out = self.testing_step(test_data_loader,hop_length,sr)
         return test_out
 
     def load_weights(self, model_weights):

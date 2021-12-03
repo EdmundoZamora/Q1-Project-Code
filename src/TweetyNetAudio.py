@@ -18,7 +18,11 @@ def downsampled_mono_audio(signal, sample_rate, normalized_sample_rate):
         signal = signal[0]
     return sample_rate, signal
 
+def get_frames(x, hop_length):
+    return ((x) / hop_length) + 1#(x - frame_size)/hop_length + 1
 
+def get_time(frames, hop_length,sr): # outputs starttime of the frame
+    return float(((frames - 1) * hop_length ))/sr
 
 def load_wav(path, decimate=None):
     """Load audio data.

@@ -24,8 +24,12 @@ from torch.utils.data import Dataset
 from CustomAudioDataset import CustomAudioDataset
 from TweetyNetModel import TweetyNetModel
 
-def get_frames(x, frame_size, hop_length):
+def get_frames(x, hop_length):
     return ((x) / hop_length) + 1#(x - frame_size)/hop_length + 1
+
+def get_time(frames, hop_length): # outputs starttime of the frame
+    return (frames - 1) * hop_length 
+
 def frames2seconds(x, sr):
     return x/sr
 def find_tags(data_path, folder):
@@ -104,6 +108,7 @@ def calc_Y(x, sr, spc, annotation, tags, frame_size, hop_length):
             y[j] = 1 # For binary use. add if statement later tags[annotation.loc[i, "tag"]]
     return y
 
+# frames to sec
 
 def split_dataset(X, Y, test_size=0.2, random_state=0):
     split_generator = StratifiedShuffleSplit(n_splits=1, test_size=test_size, random_state=random_state)
@@ -270,7 +275,7 @@ def main():
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print('Using {} device'.format(device))
     tweetynet = TweetyNetModel(len(Counter(all_tags)), (1, n_mels, 216), device, binary=False)
-    test_out = tweetynet.test_load_step(test_dataset, model_weights="OnlyBirds/model_weights-20210821_145528.h5")
+    test_out = tweetynet.test_load_step(test_dataset, hop_length, sr,model_weights="OnlyBirds/model_weights-20210821_145528.h5")
     test_out.to_csv("50_OnlyBirdsi_google_Predictions.csv")
 
 main()
