@@ -192,13 +192,13 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     return all_tags, n_mels, train_dataset, val_dataset, test_dataset, HOP_LENGTH, SR
 
 
-def model_build(all_tags, n_mels, train_dataset, val_dataset,Skip, lr, batch_size, epochs, outdir):
-    train = True
-    fineTuning = False
+def model_build( all_tags, n_mels, train_dataset, val_dataset, Skip, lr, batch_size, epochs, outdir):
     
     if Skip:
         for f in os.listdir(outdir):
             os.remove(os.path.join(outdir, f))
+    else:   
+        pass
     
     #device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -211,11 +211,9 @@ def model_build(all_tags, n_mels, train_dataset, val_dataset,Skip, lr, batch_siz
     print(f"Using {device} ")# torch.cuda.get_device_name(0)
 
     tweetynet = TweetyNetModel(len(Counter(all_tags)), (1, n_mels, 216), device, binary=False)
-    date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+    print(datetime.now().strftime("%Y%m%d_%H%M%S"))
 
-    #next(iter(tweetynet.).is_cuda
-
-    history, start_time, end_time, date_str = tweetynet.train_pipeline(train_dataset,val_dataset, None,
+    history, test_out, start_time, end_time, date_str = tweetynet.train_pipeline(train_dataset,val_dataset, None,
                                                                        lr=lr, batch_size=batch_size,epochs=epochs, save_me=True,
                                                                        fine_tuning=False, finetune_path=None, outdir=outdir)
     print("Training time:", end_time-start_time)

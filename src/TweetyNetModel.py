@@ -277,7 +277,8 @@ class TweetyNetModel:
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
 
                 output = self.model(inputs, inputs.shape[0], labels.shape[0]) # what is this output look like?
-                print(output)
+                #print(output)
+
                 temp_uids = []
                 files = []
                 if self.binary: # weakly labeled
@@ -295,8 +296,7 @@ class TweetyNetModel:
 
                 pred = torch.argmax(output, dim=1) # causing problems
                 #pred = longtensor.numpy()
-
-                print(pred)
+                #print(pred) # to numpy
 
                 d = {"uid": temp_uids.flatten(),"file":files, "zero_pred": zero_pred.flatten(), "one_pred": one_pred.flatten(), "pred": pred.flatten(),"label": labels.flatten()}
                 new_preds = pd.DataFrame(d)
