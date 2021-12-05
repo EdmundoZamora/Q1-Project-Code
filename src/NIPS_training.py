@@ -148,37 +148,16 @@ def load_dataset(data_path, folder, SR, n_mels, frame_size, hop_length, nonBird_
     uids = np.array([dataset["uids"][i] for i in inds])
     return X, Y, uids
 
-
-# modified for run.py
-
-# def params():
-#     train = True
-#     fineTuning = False
-
-#     SR=44100
-#     HOP_LENGTH = 1024
-#     FRAME_SIZE = 2048
-#     #needs at least 80 for mel spectrograms ## may be able to do a little less, but must be greater than 60
-#     n_mels=72 # The closest we can get tmeporally is 72 with an output of 432 : i think it depends on whats good
-
-#     #this number should be proportional to the length of the videos.
-#     # C:\\Users\lianl\Repositories\Methodology5\data\raw\\NIPS4B_BIRD_CHALLENGE_TRAIN_TEST_WAV
-#     datasets_dir = "C:\\Users\lianl\Repositories\Methodology5\\NIPS4B_BIRD_CHALLENGE_TRAIN_TEST_WAV" #how for Methodology5
-#     #datasets_dir = "/home/e4e/e4e_nas_aid/nips4bplus/NIPS4BPlus"
-
-#     nonBird_labels = ["Plasab_song", "Unknown", "Tibtom_song", "Lyrple_song", "Plaaff_song", "Pelgra_call", "Cicatr_song", "Cicorn_song", "Tetpyg_song", "Ptehey_song"]
-#     found = {"Plasab_song": 0, "Unknown": 0, "Tibtom_song": 0, "Lyrple_song": 0, "Plaaff_song": 0, "Pelgra_call": 0, "Cicatr_song": 0, "Cicorn_song": 0, "Tetpyg_song": 0, "Ptehey_song": 0}
-    
-#     #keep track of how many occurences we find.
-#     #get a sample so there is even distribution = 50-50%
-#     folder = "train"
-
 def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, nonBird_labels, found):
     train = True
     fineTuning = False
+    print("----------------------------------------------------------------------------------------------")
+    print("\n")
     print("IGNORE MISSING WAV FILES - THEY DONT EXIST")
     # load_data_set returns variables which get fed into model builder 
     X, Y, uids = load_dataset(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, nonBird_labels, found, use_dump=True)
+    print("\n")
+    print("----------------------------------------------------------------------------------------------")
     test_dataset = CustomAudioDataset(X, Y, uids)
 
     pos, total = 0,0
@@ -190,7 +169,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     for y in Y:
         pos += sum(y)
         total += len(y)
-    print(pos, total, pos/total, len(Y))
+    # print(pos, total, pos/total, len(Y))
 
     #features above feed into below
 
@@ -202,8 +181,8 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     #return
     
     X_train, X_val, Y_train, Y_val, uids_train, uids_val = train_test_split(X, Y, uids, test_size=.2)
-    print(X_train.shape, Y_train.shape, uids_train.shape)
-    print(X_val.shape, Y_val.shape, uids_val.shape)
+    # print(X_train.shape, Y_train.shape, uids_train.shape)
+    # print(X_val.shape, Y_val.shape, uids_val.shape)
 
     train_dataset = CustomAudioDataset(X_train, Y_train, uids_train)
     #test_dataset = CustomAudioDataset(X_test[:6], Y_test[:6], uids_test[:6])
@@ -228,13 +207,13 @@ def model_build(all_tags, n_mels, train_dataset, val_dataset,Skip, lr, batch_siz
     #     device = "cuda"
     # else:
     #     device = "cpu"
-    device = "cuda"
+    device = "cpu"
         
     print(f"Using {device} device")
     print('Using {} device'.format(device))
 
     tweetynet = TweetyNetModel(len(Counter(all_tags)), (1, n_mels, 216), device, binary=False)
-
+    date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
     history, test_out, start_time, end_time, date_str = tweetynet.train_pipeline(train_dataset,val_dataset, None,
                                                                        lr=lr, batch_size=batch_size,epochs=epochs, save_me=True,
                                                                        fine_tuning=False, finetune_path=None, outdir=outdir)
