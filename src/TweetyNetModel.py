@@ -293,7 +293,7 @@ class TweetyNetModel:
                 one_pred = output[:, 1, :]
 
                 pred = torch.argmax(output, dim=1) # causing problems
-                #pred = pred.cpu().numpy() 
+                pred = pred.cpu().numpy() 
 
                 d = {"uid": temp_uids.flatten(),"file":files, "zero_pred": zero_pred.flatten(), "one_pred": one_pred.flatten(), "pred": pred.flatten(),"label": labels.flatten()}
                 new_preds = pd.DataFrame(d)
