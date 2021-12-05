@@ -210,7 +210,7 @@ def model_build(all_tags, n_mels, train_dataset, val_dataset,Skip, lr, batch_siz
         device = "cpu"
     # device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    print(f"Using {device} device")
+    print(f"Using {torch.cuda.get_device_name(0)} ")
 
     tweetynet = TweetyNetModel(len(Counter(all_tags)), (1, n_mels, 216), device, binary=False)
     date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
