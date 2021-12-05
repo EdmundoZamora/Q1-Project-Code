@@ -23,12 +23,12 @@ USER root
 # RUN sudo apt-get update -y
 # RUN apt-get -y install feh
 # RUN apt-get -y install X
-
+RUN apt-get -y install git 
 # 3) install packages using notebook user
 USER jovyan 
 # RUN conda install -y environment dependencies seen on environment.yaml
 RUN pip install --no-cache-dir pandas numpy vak scipy torch librosa sox multipledispatch
-RUN apt-get -y install git 
+
 # clone the repository and switch working directory to run the methodology.
 
 # make repo directory
