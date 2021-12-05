@@ -18,31 +18,13 @@ LABEL maintainer="UC San Diego ITS/ETS <ets-consult@ucsd.edu>"
 
 # 2) change to root to install packages
 USER root
-# viewing images doesnt work yet.
-#RUN docker run -it --user root-- sudo apt-get install -y feh
-# RUN sudo apt-get update -y
-# RUN apt-get -y install feh
-# RUN apt-get -y install X
 RUN apt-get -y install git 
 # 3) install packages using notebook user
 USER jovyan 
 # RUN conda install -y environment dependencies seen on environment.yaml
 RUN pip install --no-cache-dir pandas numpy vak scipy torch librosa sox multipledispatch
 
-# clone the repository and switch working directory to run the methodology.
-
-# make repo directory
-#RUN mkdir -p ~/repos
-# cd into repo directory
-#WORKDIR ~/repos
-# clone git repository
-
-RUN git clone https://github.com/EdmundoZamora/Methodology5.git
-
-# cd into Methodology directory in the repos directory.
-WORKDIR Methodology5
-#RUN conda env create -f tweety.yaml
-#RUN conda activate tweety
+#RUN git clone https://github.com/EdmundoZamora/Methodology5.git
 
 CMD ["/bin/bash"] 
 #[ "python","-u", ".\run.py", "data", "features", "model", "evaluate" ]
