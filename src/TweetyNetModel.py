@@ -276,7 +276,8 @@ class TweetyNetModel:
                 print(labels.dtype)
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
 
-                output = self.model(inputs, inputs.shape[0], labels.shape[0])
+                output = self.model(inputs, inputs.shape[0], labels.shape[0]) # what is this output look like?
+                print(output)
                 temp_uids = []
                 files = []
                 if self.binary: # weakly labeled
@@ -292,8 +293,8 @@ class TweetyNetModel:
                 zero_pred = output[:, 0, :]
                 one_pred = output[:, 1, :]
 
-                a = torch.argmax(output, dim=1) # causing problems
-                pred = a.cpu().numpy() 
+                pred = torch.argmax(output, dim=1) # causing problems
+                #pred = longtensor.numpy()
 
                 print(pred)
 
