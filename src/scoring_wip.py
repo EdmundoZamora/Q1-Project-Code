@@ -88,7 +88,7 @@ for i in range(1):
         continue
 
 #region
-#curr_file = wav[0] 
-# file_filt = evals[evals['file'] == curr_file]
-# file_filt.to_csv(os.path.join("data/out","nips4b_birds_classificationfile001.csv"))
+curr_file = wav[0] 
+file_filt = evals[evals['file'] == curr_file]
+file_filt.to_csv(os.path.join("data/out","nips4b_birds_classificationfile001.csv"))
 #endregion
