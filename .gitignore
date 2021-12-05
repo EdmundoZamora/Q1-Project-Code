@@ -1,4 +1,7 @@
 data/raw/
-__pycache__/
-.ipynb_checkpoints/
-notebooks/
+*pyc
+*/__pycache__/*
+*/.ipynb_checkpoints/*
+.ipynb_checkpoints/*
+src/__pycache__/
+*.ipynb
