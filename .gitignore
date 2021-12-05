@@ -1,4 +1,4 @@
 data/raw/
-**/__pychache__/
-.ipynb_checkpoints/
-notebooks/
+**/__pycache__/
+/.ipynb_checkpoints
+/notebooks
