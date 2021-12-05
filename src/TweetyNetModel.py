@@ -297,17 +297,17 @@ class TweetyNetModel:
 
                 predictions = predictions.append(new_preds)
 
-                tim = {"temporal_frame_start_times": st_time}
-                time_secs = pd.DataFrame(tim)
+                #tim = {"temporal_frame_start_times": st_time}
+                #time_secs = pd.DataFrame(tim)
 
-                nu_time = pd.concat([time_secs]*425, ignore_index=True)
+                #nu_time = pd.concat([time_secs]*425, ignore_index=True)
 
-                extracted_col = nu_time["temporal_frame_start_times"]
+                #extracted_col = nu_time["temporal_frame_start_times"]
                 
-                predictions_timed = predictions.join(extracted_col)
+                predictions_timed = predictions#.join(extracted_col)
 
         print('Finished Testing')
-        return predictions_timed, time_secs
+        return predictions_timed#, time_secs
 
     """
     Function: test_load_step
