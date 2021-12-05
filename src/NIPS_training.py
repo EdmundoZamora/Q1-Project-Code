@@ -207,7 +207,7 @@ def model_build(all_tags, n_mels, train_dataset, val_dataset,Skip, lr, batch_siz
     #     device = "cuda"
     # else:
     #     device = "cpu"
-    device = "cpu"
+    device = "cuda"
         
     print(f"Using {device} device")
     print('Using {} device'.format(device))
