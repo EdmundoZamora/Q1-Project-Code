@@ -1,0 +1,5 @@
+data/raw
+__pychache__
+.ipynb_checkpoints
+notebooks
+src/__pychache__
