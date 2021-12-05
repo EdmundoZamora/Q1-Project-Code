@@ -37,13 +37,12 @@ RUN pip install --no-cache-dir pandas numpy vak scipy torch librosa sox multiple
 #WORKDIR ~/repos
 # clone git repository
 
-#RUN git clone https://github.com/EdmundoZamora/Methodology5.git
+RUN git clone https://github.com/EdmundoZamora/Methodology5.git
 
 # cd into Methodology directory in the repos directory.
-#WORKDIR Methodology5
+WORKDIR Methodology5
 #RUN conda env create -f tweety.yaml
 #RUN conda activate tweety
-# run command or entrypoint
-# ENTRYPOINT [ "executable" ]
-CMD CMD ["/bin/bash"] 
+
+CMD ["/bin/bash"] 
 #[ "python","-u", ".\run.py", "data", "features", "model", "evaluate" ]
