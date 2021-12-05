@@ -1,15 +1,15 @@
 import sys
 import json 
 
-
 sys.path.insert(0, 'src')
 
+#region 
 # file that gets the data DONE
 # function that applies the features DONE
 # function that builds the model DONE
 # results go into separate files 
 # perform on a docker container <-- current challenge CURR
-# get cuda to work. works on tweety, slow on gpu if epochs low?
+# endregion get cuda to work. works on tweety, slow on gpu if epochs low?
 
 import env_setup
 from etl import get_data
@@ -19,10 +19,12 @@ def main(targets):
     '''
     Runs the main project pipeline logic, given the targets.
     targets must contain: 'data', 'features', 'model', 'evaluate'. 
-    if data is already downloaded, spare your self the wait using
+    if data is already downloaded, spare your self the wait using:
+    ~
     python run.py data skip features model evaluate
+    ~
     including skip in the targets skips the data downloading step.
-    `main` runs the targets in order of data=>analysis=>model.
+    `main` runs the targets in order of data=>features=>model=>classifications.
     '''
 
     if 'data' in targets:
@@ -65,5 +67,7 @@ def main(targets):
 if __name__ == '__main__':
     # run via:
     # python run.py data features model evaluate
+    # or 
+    # python run.py data skip features model evaluate
     targets = sys.argv[1:]
     main(targets)

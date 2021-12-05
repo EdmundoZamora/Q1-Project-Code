@@ -14,4 +14,4 @@ def make_datadir():
         os.makedirs(os.path.join(data_loc, d), exist_ok=True)
     return
 
-#make_datadir() #run this file to reset the data directory
+make_datadir() #run this file to reset the data directory

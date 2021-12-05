@@ -22,7 +22,7 @@ def get_frames(x, hop_length):
     return ((x) / hop_length) + 1#(x - frame_size)/hop_length + 1
 
 def get_time(frames, hop_length,sr): # outputs starttime of the frame
-    return float(((frames - 1) * hop_length ))/sr
+    return float(((frames) * hop_length ))/sr
 
 def load_wav(path, decimate=None):
     """Load audio data.

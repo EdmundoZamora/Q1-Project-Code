@@ -297,12 +297,12 @@ class TweetyNetModel:
 
                 predictions = predictions.append(new_preds)
 
-                tim = {"temporal_frame": st_time}
+                tim = {"temporal_frame_start_times": st_time}
                 time_secs = pd.DataFrame(tim)
 
                 nu_time = pd.concat([time_secs]*425, ignore_index=True)
 
-                extracted_col = nu_time["temporal_frame"]
+                extracted_col = nu_time["temporal_frame_start_times"]
                 
                 predictions_timed = predictions.join(extracted_col)
 
