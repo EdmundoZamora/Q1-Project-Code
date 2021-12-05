@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 import torch
-
+import torch.cuda
 from torch.utils.data import DataLoader
 from network import TweetyNet
 from EvaluationFunctions import frame_error, syllable_edit_distance
@@ -291,23 +291,26 @@ class TweetyNetModel:
                     temp_uids = np.array(temp_uids)
                 zero_pred = output[:, 0, :]
                 one_pred = output[:, 1, :]
-                pred = torch.argmax(output, dim=1)
+
+                pred = torch.argmax(output, dim=1) # causing problems
+                #pred = Tensor.cpu()
+
                 d = {"uid": temp_uids.flatten(),"file":files, "zero_pred": zero_pred.flatten(), "one_pred": one_pred.flatten(), "pred": pred.flatten(),"label": labels.flatten()}
                 new_preds = pd.DataFrame(d)
 
                 predictions = predictions.append(new_preds)
 
-                #tim = {"temporal_frame_start_times": st_time}
-                #time_secs = pd.DataFrame(tim)
+                tim = {"temporal_frame_start_times": st_time}
+                time_secs = pd.DataFrame(tim)
 
-                #nu_time = pd.concat([time_secs]*425, ignore_index=True)
+                nu_time = pd.concat([time_secs]*425, ignore_index=True)
 
-                #extracted_col = nu_time["temporal_frame_start_times"]
+                extracted_col = nu_time["temporal_frame_start_times"]
                 
-                predictions_timed = predictions#.join(extracted_col)
+                predictions_timed = predictions.join(extracted_col)
 
         print('Finished Testing')
-        return predictions_timed#, time_secs
+        return predictions_timed, time_secs
 
     """
     Function: test_load_step

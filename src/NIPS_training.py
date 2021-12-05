@@ -11,6 +11,7 @@ import numpy as np
 from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
 
 import torch
+import torch.cuda
 from torch import nn
 from torch.utils.data import DataLoader
 from network import TweetyNet
@@ -203,17 +204,19 @@ def model_build(all_tags, n_mels, train_dataset, val_dataset,Skip, lr, batch_siz
 
     cwd = os.getcwd() 
     os.chdir(outdir)
-    # if torch.cuda.is_available(): #get this to work, does not detect gpu. works on tweety env(slow)
-    #     device = "cuda"
-    # else:
-    #     device = "cpu"
-    device = "cuda"
-        
+    if torch.cuda.is_available(): #get this to work, does not detect gpu. works on tweety env(slow)
+        device = torch.device('cuda:0')
+    else:
+        device = "cpu"
+    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
     print(f"Using {device} device")
-    print('Using {} device'.format(device))
 
     tweetynet = TweetyNetModel(len(Counter(all_tags)), (1, n_mels, 216), device, binary=False)
     date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    #next(iter(tweetynet.).is_cuda
+
     history, test_out, start_time, end_time, date_str = tweetynet.train_pipeline(train_dataset,val_dataset, None,
                                                                        lr=lr, batch_size=batch_size,epochs=epochs, save_me=True,
                                                                        fine_tuning=False, finetune_path=None, outdir=outdir)
