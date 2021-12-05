@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 import torch
-import torch.cuda
+
 from torch.utils.data import DataLoader
 from network import TweetyNet
 from EvaluationFunctions import frame_error, syllable_edit_distance
@@ -292,8 +292,10 @@ class TweetyNetModel:
                 zero_pred = output[:, 0, :]
                 one_pred = output[:, 1, :]
 
-                pred = torch.argmax(output, dim=1) # causing problems
-                pred = pred.cpu().numpy() 
+                a = torch.argmax(output, dim=1) # causing problems
+                pred = a.cpu().numpy() 
+
+                print(pred)
 
                 d = {"uid": temp_uids.flatten(),"file":files, "zero_pred": zero_pred.flatten(), "one_pred": one_pred.flatten(), "pred": pred.flatten(),"label": labels.flatten()}
                 new_preds = pd.DataFrame(d)
