@@ -74,7 +74,6 @@ def compute_feature(data_path, folder, SR, n_mels, frame_size, hop_length, nonBi
         features["Y"].append(Y)
     return features
 
-
 def compute_Y(f, spc, tags, data_path, folder, SR, frame_size, hop_length, nonBird_labels, found):
     file_num = f.split("file")[-1][:3]
     fpath = os.path.join(data_path, "temporal_annotations_nips4b", "".join(["annotation_", folder, file_num, ".csv"]))
@@ -86,7 +85,6 @@ def compute_Y(f, spc, tags, data_path, folder, SR, frame_size, hop_length, nonBi
     else:
         print("file does not exist: ", f)
     return [0] * spc.shape[1]
-
 
 def calc_Y(x, sr, spc, annotation, tags, frame_size, hop_length, nonBird_labels, found):
     y = [0] * spc.shape[1]
@@ -101,7 +99,6 @@ def calc_Y(x, sr, spc, annotation, tags, frame_size, hop_length, nonBird_labels,
             #print(str(annotation["tag"][i]))
             found[str(annotation["tag"][i])] += 1
     return y
-
 
 def split_dataset(X, Y, test_size=0.2, random_state=0):
     split_generator = StratifiedShuffleSplit(n_splits=1, test_size=test_size, random_state=random_state)
@@ -148,6 +145,14 @@ def load_dataset(data_path, folder, SR, n_mels, frame_size, hop_length, nonBird_
     Y = np.array([dataset["Y"][i] for i in inds])
     uids = np.array([dataset["uids"][i] for i in inds])
     return X, Y, uids
+
+
+
+
+
+
+
+
 
 def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, nonBird_labels, found):
     train = True
@@ -207,11 +212,13 @@ def model_build( all_tags, n_mels, train_dataset, val_dataset, Skip, lr, batch_s
 
     #if torch.cuda.is_available(): #get this to work, does not detect gpu. works on tweety env(slow)
     device = 'cpu' #torch.device('cuda:0')
-    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    #device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
     print(f"Using {device} ")# torch.cuda.get_device_name(0)
 
+    print(datetime.now().strftime("%d/%m/%Y %I:%M:%S"))
+
     tweetynet = TweetyNetModel(len(Counter(all_tags)), (1, n_mels, 216), device, binary=False)
-    print(datetime.now().strftime("%Y%m%d_%H%M%S"))
 
     history, test_out, start_time, end_time, date_str = tweetynet.train_pipeline(train_dataset,val_dataset, None,
                                                                        lr=lr, batch_size=batch_size,epochs=epochs, save_me=True,
@@ -224,6 +231,7 @@ def model_build( all_tags, n_mels, train_dataset, val_dataset, Skip, lr, batch_s
         pickle.dump(history, f, pickle.HIGHEST_PROTOCOL) 
 
     return tweetynet, date_str
+
 
 def evaluate(model,test_dataset, date_str, hop_length, sr, outdir): # How can we evaluauate on a specific wav file though?? and show time in the csv? and time on a spectrorgam? ¯\_(ツ)_/¯
     

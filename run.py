@@ -1,3 +1,4 @@
+import os
 import sys
 import json 
 
@@ -40,10 +41,18 @@ def main(targets):
         data = get_data(Skip, **data_cfg)
 
     if 'features' in targets:
-        with open('config/features-params.json') as fh:
-            feats_cfg = json.load(fh)
+        if 'skip' in targets:
+            data = os.path.join('data/raw',"NIPS4B_BIRD_CHALLENGE_TRAIN_TEST_WAV")
 
-        all_tags, n_mels, train_dataset, val_dataset, test_dataset, hop_length, sr   = apply_features(data, **feats_cfg)
+            with open('config/features-params.json') as fh:
+                feats_cfg = json.load(fh)
+
+            all_tags, n_mels, train_dataset, val_dataset, test_dataset, hop_length, sr = apply_features(data, **feats_cfg)
+        else:
+            with open('config/features-params.json') as fh:
+                feats_cfg = json.load(fh)
+
+            all_tags, n_mels, train_dataset, val_dataset, test_dataset, hop_length, sr = apply_features(data, **feats_cfg)
 
     if 'model' in targets: # get cuda to work, GPU to work. cuda available in tweety env
         if "skip" in targets:
