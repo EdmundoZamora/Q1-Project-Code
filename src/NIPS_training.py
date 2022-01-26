@@ -148,12 +148,6 @@ def load_dataset(data_path, folder, SR, n_mels, frame_size, hop_length, nonBird_
 
 
 
-
-
-
-
-
-
 def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, nonBird_labels, found):
     train = True
     fineTuning = False
@@ -211,8 +205,8 @@ def model_build( all_tags, n_mels, train_dataset, val_dataset, Skip, lr, batch_s
     os.chdir(outdir)
 
     #if torch.cuda.is_available(): #get this to work, does not detect gpu. works on tweety env(slow)
-    device = 'cpu' #torch.device('cuda:0')
-    #device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    #device = 'cpu' #torch.device('cuda:0')
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     print(f"Using {device} ")# torch.cuda.get_device_name(0)
 
