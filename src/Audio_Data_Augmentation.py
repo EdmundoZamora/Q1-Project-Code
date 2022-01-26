@@ -58,6 +58,7 @@ def augment_speed(signal, sample_rate, factor):
     print("Speed Modulation Factor: ", factor)
     speed_modulated_signal = librosa.effects.time_stretch(signal, factor)
     return speed_modulated_signal
+#Will need to adjust strong labels to make sure they match up with the new speed.
 
 # Tempo factor should be between 0.9 and 1.1
 def augment_tempo_and_save(filepath, factor):
