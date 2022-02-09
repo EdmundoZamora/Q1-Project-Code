@@ -25,7 +25,7 @@ class TweetyNetModel:
     #       ex: (1, 1025, 88) where (# channels, # of frequency bins/mel bands, # of frames)
     #       device: "cuda" or "cpu" to specify if machine will run on gpu or cpu.
     # output: None
-    def __init__(self, num_classes, input_shape, device, epochs = 1, binary=False, criterion=None, optimizer=None):
+    def __init__(self, num_classes, input_shape, window_size, device, epochs = 1, binary=False, criterion=None, optimizer=None):
         self.model = TweetyNet(num_classes=num_classes,
                                input_shape=input_shape,
                                padding='same',
@@ -44,7 +44,7 @@ class TweetyNetModel:
         self.device = device
         self.model.to(device)
         self.binary = binary
-        self.window_size = input_shape[-1]
+        self.window_size = window_size #input_shape[-1] # set for pyrenote
         self.runtime = 0
         self.criterion = criterion if criterion is not None else torch.nn.CrossEntropyLoss().to(device)
         self.optimizer = optimizer if optimizer is not None else torch.optim.Adam(params=self.model.parameters())

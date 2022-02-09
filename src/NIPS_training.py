@@ -6,6 +6,9 @@ import pickle
 from collections import Counter
 from datetime import datetime
 
+from graphs import file_graph_temporal, file_graph_temporal_rates
+from scoring import file_score
+
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
@@ -37,8 +40,7 @@ def frames2seconds(x, sr):
 def compute_windows(spc,Y,win_size):
     spc = spc
     Y=Y
-    frames2seconds
-
+    win_size = win_size
     return
 
 
@@ -77,7 +79,7 @@ def create_pyrenote_tags(data_path, folder):
     # print(tags)
     return tags # returns a dictionary of species and their counts
 # works
-def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_length):
+def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_length,windowsize):
     print(f"Compute features for dataset {os.path.basename(data_path)}")
     
     features = {"uids": [], "X": [], "Y": []}
@@ -119,32 +121,57 @@ def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_leng
 		#signal, SR = downsampled_mono_audio(signal, sample_rate, SR)
         # print(f)
         wav = os.path.join(file_path, f)
-        spc,len_audio = wav2spc(wav, fs=SR, n_mels=n_mels) # returns array for display melspec
+        spc,len_audio = wav2spc(wav, fs=SR, n_mels=n_mels) # returns array for display melspec (216,72)
         # print(spc)
         print(f'spec shape {spc.shape}')
-        window = frames2seconds(spc.shape[1],SR)
+        window = frames2seconds(spc.shape[1],SR) # seconds also, model has
         print(f'window size {window}')
         print(f'length of audio {len_audio}')
         print(f'time bins in seconds {len_audio/spc.shape[1]}')
-        # curr have seconds we want for winds
+
+        time_bins = len_audio/spc.shape[1] # in seconds
+
+        '''# curr have seconds we want for winds
         # now we need to calc how many time bins we need to meet the number of seconds.
         # able to slice the matrix, to balance the windows.
-        return 
+        # return 
         # print(wav)
         # spec = librosa.display.specshow(spc,sr = SR, hop_length = hop_length, y_axis='mel', x_axis='time') # 72 is freq bin, second is time bins
         # print(spec)
         # plt.show()
         # return
         # return
-        # print(type(spc))
+        # print(type(spc))'''
         Y = compute_pyrenote_Y(wav,f, spc, tags, data_path, folder, SR, frame_size, hop_length) # fix this
-        # compute_windows(spc,Y)--> array of spc's and their corresponding windows.
+        computed = windowsize//time_bins
+        # print(computed*(Y.shape[0]//computed))
+        time_axis = int(computed*(Y.shape[0]//computed))
+        # print(time_axis)
+        # print(type(time_axis))
+        # print(Y.shape[0]//computed)
+        freq_axis = int(Y.shape[0]//computed)
+        # print(type(freq_axis))
+        # return 
+        spc_split = np.split(spc[:time_axis,:],freq_axis,axis = 1)
+        Y_split = np.split(Y[:time_axis],freq_axis)
+        # spc.shape[0]
+        # print(len(spc_split))
+        # print(len(Y_split))
+        # print(spc_split[0].shape)
+        # print(Y_split[0].shape)
+        # return 
+
+        # for i in spc:
+
+
+        '''# compute_windows(spc,Y)--> array of spc's and their corresponding windows.
         #compute the seconds, for window length
         #spc matrix and labels array window spcs to match up with the labels
-        # return
-        features["uids"].append(f)
-        features["X"].append(spc)
-        features["Y"].append(Y)
+        # return'''
+        features["uids"].extend([f]*freq_axis) # need 31 of f
+        features["X"].extend(spc_split)#.append(spc)
+        features["Y"].extend(Y_split)#.append(Y)
+        # features["time_bins"].append(time_bins)
 
     # print(filenames)
     # return
@@ -455,7 +482,10 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
 
     # create_pyrenote_tags(datasets_dir, folder)
 
-    compute_pyrenote_feature(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH)
+    feats = compute_pyrenote_feature(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH,2)
+    print(feats['uids'].shape)
+    print(feats['X'].shape)
+    print(feats['Y'].shape)
     return 
     # X, Y, uids = load_pyrenote_dataset(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH)
     # print(f'X shape {X.shape}') #number of birds, rows of each data column of each data.
@@ -649,11 +679,18 @@ def model_build( all_tags, n_mels, train_dataset, val_dataset, Skip, lr, batch_s
     return tweetynet, date_str
 
 
-def evaluate(model,test_dataset, date_str, hop_length, sr, outdir): # How can we evaluauate on a specific wav file though?? and show time in the csv? and time on a spectrorgam? ¯\_(ツ)_/¯
+def evaluate(model,test_dataset, date_str, hop_length, sr, outdir,temporal_graphs): # How can we evaluauate on a specific wav file though?? and show time in the csv? and time on a spectrorgam? ¯\_(ツ)_/¯
     # consider the test dataset, done on all? or unseen?
     model_weights = os.path.join(outdir,f"model_weights-{date_str}.h5") # time sensitive file title
     tweetynet = model
     test_out, time_segs = tweetynet.test_load_step(test_dataset, hop_length, sr, model_weights=model_weights) 
     test_out.to_csv(os.path.join(outdir,"Evaluation_on_data.csv"))
     time_segs.to_csv(os.path.join(outdir,"Time_intervals.csv"))
+    orig_stdout = sys.stdout
+    sys.stdout = open(os.path.join('data/out','file_score_rates.txt'), 'w')
+    file_score(temporal_graphs)
+    sys.stdout.close()
+    sys.stdout = orig_stdout
+    file_graph_temporal(temporal_graphs) 
+    file_graph_temporal_rates(temporal_graphs)
     return print("Finished Classifcation")
