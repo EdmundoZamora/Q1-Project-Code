@@ -79,7 +79,7 @@ def create_pyrenote_tags(data_path, folder):
     # print(tags)
     return tags # returns a dictionary of species and their counts
 # works
-def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_length,windowsize):
+def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_length, windowsize):
     print(f"Compute features for dataset {os.path.basename(data_path)}")
     
     features = {"uids": [], "X": [], "Y": []}
@@ -122,12 +122,15 @@ def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_leng
         # print(f)
         wav = os.path.join(file_path, f)
         spc,len_audio = wav2spc(wav, fs=SR, n_mels=n_mels) # returns array for display melspec (216,72)
+        # spec_1 = librosa.display.specshow(spc, hop_length = hop_length, sr = SR, y_axis = 'mel', x_axis='time')
         # print(spc)
-        print(f'spec shape {spc.shape}')
+        # print(spec_1)
+        # plt.show()
+        # print(f'spec shape {spc.shape}')
         window = frames2seconds(spc.shape[1],SR) # seconds also, model has
-        print(f'window size {window}')
-        print(f'length of audio {len_audio}')
-        print(f'time bins in seconds {len_audio/spc.shape[1]}')
+        # print(f'window size {window}')
+        # print(f'length of audio {len_audio}')
+        # print(f'time bins in seconds {len_audio/spc.shape[1]}')
 
         time_bins = len_audio/spc.shape[1] # in seconds
 
@@ -143,17 +146,31 @@ def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_leng
         # return
         # print(type(spc))'''
         Y = compute_pyrenote_Y(wav,f, spc, tags, data_path, folder, SR, frame_size, hop_length) # fix this
-        computed = windowsize//time_bins
+        computed = windowsize//time_bins #verify, big assumption. are time bins consistant?
         # print(computed*(Y.shape[0]//computed))
         time_axis = int(computed*(Y.shape[0]//computed))
         # print(time_axis)
         # print(type(time_axis))
         # print(Y.shape[0]//computed)
-        freq_axis = int(Y.shape[0]//computed)
-        # print(type(freq_axis))
-        # return 
-        spc_split = np.split(spc[:time_axis,:],freq_axis,axis = 1)
+        freq_axis = int(Y.shape[0]//computed) # 31, 2, 19
+        # print(f'freq_axis {freq_axis}')
+        # print(f'freq_axis type {type(freq_axis)}')
+        # # return 
+        # print(f'spc split spc[:time_axis,:] shape {spc[:,:time_axis].shape}')
+        # print(f'Y split Y[:time_axis] shape {Y[:time_axis].shape}')
+
+        spc_split = np.split(spc[:,:time_axis],freq_axis,axis = 1)
         Y_split = np.split(Y[:time_axis],freq_axis)
+
+        spc_split_zero = spc_split[0]
+        print(spc_split_zero.shape)
+        print(type(spc_split_zero))
+        print(spc_split_zero)
+        # spec_2 = librosa.display.specshow(spc_split_zero, hop_length = hop_length, sr = SR, y_axis = 'mel', x_axis='time')
+        # print(spec_2)
+        # plt.show()
+        # return 
+
         # spc.shape[0]
         # print(len(spc_split))
         # print(len(Y_split))
@@ -168,6 +185,8 @@ def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_leng
         #compute the seconds, for window length
         #spc matrix and labels array window spcs to match up with the labels
         # return'''
+
+
         features["uids"].extend([f]*freq_axis) # need 31 of f
         features["X"].extend(spc_split)#.append(spc)
         features["Y"].extend(Y_split)#.append(Y)
@@ -483,9 +502,13 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     # create_pyrenote_tags(datasets_dir, folder)
 
     feats = compute_pyrenote_feature(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH,2)
-    print(feats['uids'].shape)
-    print(feats['X'].shape)
-    print(feats['Y'].shape)
+    print(len(feats['uids'])) # issue
+    print(feats['uids'][0].shape)
+    print(len(feats['X'])) # list of matrices
+    print(feats['X'][0].shape)
+    print(len(feats['Y'])) # list containing same number of time bins.
+    print(feats['Y'][0].shape)
+    # lengths should all be 5609
     return 
     # X, Y, uids = load_pyrenote_dataset(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH)
     # print(f'X shape {X.shape}') #number of birds, rows of each data column of each data.
@@ -571,7 +594,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
         #print(k, found[k])
     
     # need
-    X, Y, uids =  random_split_to_fifty(X, Y, uids)
+    X, Y, uids =  random_split_to_fifty(X, Y, uids) # worth developing further.
 
     # print(X[0])
     # print(Y[0])
