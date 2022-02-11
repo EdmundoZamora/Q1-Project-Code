@@ -5,13 +5,24 @@ import matplotlib.pyplot as pl
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+
+
+'''
+Takes in an int of number of graphs wanted 
+made in order of data stored in out directory
+figure consists of predicted presence and true presence
+'''
 def file_graph_temporal(num_graphs):
 
     filenames = os.listdir(os.path.join("data","out","separate_evaluations"))
+
+    #region
     # print(filenames)
     # print(len(filenames))
     # print(filenames[0][:-4])
     # return
+    #endregion
+
     os.makedirs(os.path.join("data","out","temporal_plots"))
     for i in range(len(filenames)):
 
@@ -46,6 +57,7 @@ def file_graph_temporal(num_graphs):
 
         sns.set_theme()
         g = sns.catplot(x="temporal_frame_start_times", y='bin', kind="swarm",height = 3,aspect = 6,data= dfm_viz)
+        
         '''
         # g = sns.scatterplot(data=dfm_viz, x="temporal_frame_start_times", y="Presence", hue="bin")
         # g.set(rc={'figure.figsize':(12,8.27)})
@@ -54,23 +66,38 @@ def file_graph_temporal(num_graphs):
         # g.yaxis.set_major_locator(ticker.MultipleLocator(1)) 
         # g.set(title='Penguins: Body Mass by Species for Gender')
         '''
+
         g.fig.subplots_adjust(top=0.9)
         g.fig.suptitle(title)
         g.set(ylabel=None)
+
+        #region
         # g.tick_params(bottom=False)
         # pl.show()
+        #endregion
+
         g.savefig(os.path.join("data/out/temporal_plots",filenames[i][:-4]+'_temporal_plot'))
         plt.close('all')
 
 # file_graph_temporal(2)
 
-
+'''
+Takes in an int of the number of graphs wanted
+also made in order of data stored in out directory
+figure consists of predicted presence and true presence
+as well as the Rate of the data (T/F,P/N) per data predicted
+on a scale of .02 frames per prediction.
+'''
 def file_graph_temporal_rates(num_graphs):
 
     filenames = os.listdir(os.path.join("data","out","separate_evaluations"))
+
+    #region
     # print(filenames)
     # print(filenames[0][:-4])
     # os.makedirs(os.path.join("data","out","temporal_plots"))
+    #endregion
+
     for i in range(len(filenames)):
         evals = pd.read_csv(os.path.join("data/out/separate_evaluations",filenames[i])) 
 
@@ -101,10 +128,10 @@ def file_graph_temporal_rates(num_graphs):
         dfm_viz.loc[(dfm_viz.bin == 'cfnmtx' ) & (dfm_viz.Presence == 'TN'), "bin"] = "TN"
         dfm_viz.loc[(dfm_viz.bin == 'cfnmtx' ) & (dfm_viz.Presence == 'FP'), "bin"] = "FP"
         dfm_viz.loc[(dfm_viz.bin == 'cfnmtx' ) & (dfm_viz.Presence == 'FN'), "bin"] = "FN"
-        
 
         sns.set_theme()
         g = sns.catplot(x="temporal_frame_start_times", y='bin', kind="swarm",height = 3,aspect = 6,data= dfm_viz)
+        
         '''
         # g = sns.scatterplot(data=dfm_viz, x="temporal_frame_start_times", y="Presence", hue="bin")
         # g.set(rc={'figure.figsize':(12,8.27)})
@@ -113,6 +140,7 @@ def file_graph_temporal_rates(num_graphs):
         # g.yaxis.set_major_locator(ticker.MultipleLocator(1)) 
         # g.set(title='Penguins: Body Mass by Species for Gender')
         '''
+
         g.fig.subplots_adjust(top=0.9)
         g.fig.suptitle(title)
         g.set(ylabel=None)

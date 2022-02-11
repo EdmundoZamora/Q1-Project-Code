@@ -123,8 +123,10 @@ class TweetyNetModel:
                                                         anneal_strategy='linear')
         start_time = datetime.now()
 
+        '''
         # cwd = os.getcwd() # might have to be inherited from runfile
         # os.chdir(outdir)
+        '''
 
         history = self.training_step(train_data_loader, val_data_loader, scheduler, epochs)
 
@@ -141,8 +143,11 @@ class TweetyNetModel:
             # torch.save(self.model.state_dict(), os.path.join(outdir,f"model_weights-{date_str}.h5"))
             torch.save(self.model.state_dict(), f"model_weights-{date_str}.h5")
             
+        '''
         # cwd = os.getcwd() # might have to be inherited from runfile
         # os.chdir(outdir) 
+        '''
+
         self.print_results(history)  # save to out, saves to wd. works
         #os.chdir(cwd)
         return history, test_out, start_time, end_time, date_str
@@ -179,9 +184,9 @@ class TweetyNetModel:
                 inputs, labels, _ = data
                 inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
                 
-                print(labels.dtype)
+                # print(labels.dtype)
                 labels = labels.long()
-                print(labels.dtype)
+                # print(labels.dtype)
 
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 self.optimizer.zero_grad()
@@ -294,9 +299,8 @@ class TweetyNetModel:
                 zero_pred = output[:, 0, :]
                 one_pred = output[:, 1, :]
 
-                pred = torch.argmax(output, dim=1) # causing problems
-                #pred = longtensor.numpy()
-                #print(pred) # to numpy
+                pred = torch.argmax(output, dim=1) 
+                
 
                 d = {"uid": temp_uids.flatten(),"file":files, "zero_pred": zero_pred.flatten(), "one_pred": one_pred.flatten(), "pred": pred.flatten(),"label": labels.flatten()}
                 new_preds = pd.DataFrame(d)

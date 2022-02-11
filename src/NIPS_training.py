@@ -5,28 +5,26 @@ import math
 import pickle
 from collections import Counter
 from datetime import datetime
-
 from graphs import file_graph_temporal, file_graph_temporal_rates
 from scoring import file_score
-
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
-
 import torch
 
+#region
 from torch import nn
 from torch.utils.data import DataLoader
 from network import TweetyNet
 import librosa
 from librosa import display
+import scipy.signal as scipy_signal
+from torch.utils.data import Dataset
+from glob import glob
+#endregion
 
 from TweetyNetAudio import wav2spc, create_spec, load_wav
-from glob import glob
 import random
-import scipy.signal as scipy_signal
-
-from torch.utils.data import Dataset
 from CustomAudioDataset import CustomAudioDataset
 from TweetyNetModel import TweetyNetModel
 
@@ -34,6 +32,7 @@ import matplotlib.pyplot as plt
 
 def get_frames(x, frame_size, hop_length):
     return ((x) / hop_length) + 1 #(x - frame_size)/hop_length + 1
+
 def frames2seconds(x, sr):
     return x/sr
 
@@ -83,25 +82,32 @@ def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_leng
     print(f"Compute features for dataset {os.path.basename(data_path)}")
     
     features = {"uids": [], "X": [], "Y": []}
+    '''
     # print(data_path)
     # folder = 
     # print(os.path.join(data_path, folder))
     # cwd = os.getcwd() 
     # print(cwd)
+    '''
     pyre_notes = find_pyrenote_tags(data_path,folder)
     valid_filenames = pyre_notes["IN FILE"].drop_duplicates().values.tolist() 
+    '''
     # print(valid_filnames)
     # return
+    '''
     file_path = os.path.join(data_path,"Mixed_Bird-20220126T212121Z-003","Mixed_Bird")
     # print(file_path)
     filenames = os.listdir(file_path)
     # print(filenames)
     true_wavs = [i for i in filenames if i in valid_filenames] # keep in mind not all wavs have been downloaded yet.
+    
+    
+    #region
     # print(os.path.join(data_path,'birdwavs.txt'))
-    #C:\Users\lianl\Repositories\Q1-Project-Code\data\PYRE\birdwavs.txt
+    #C:\Users\lianl\Repositories\Q1-Project-Code\data\PYRE\ birdwavs.txt
     # with open(os.path.join(data_path,'birdwavs.txt'), 'w') as filehandle: # for getting the stats in this set of data., makes an extra new line in txt.
     #     for listitem in true_wavs:
-    #         filehandle.write('%s\n' % listitem)
+    #         filehandle.write('%s\ n' % listitem)
     # return 
     # print(true_wavs)
     # print(len(true_wavs))
@@ -111,17 +117,25 @@ def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_leng
     "Recordings in the format of nips4b_birds_{folder}filexxx.wav"
     
     "annotations in the format annotation_{folder}xxx.csv"
+    #endregion
+    
     
     tags = create_pyrenote_tags(data_path, folder)
+    '''
     # print(tags)
-    # return 
+    # return
+    ''' 
     
     
     for f in true_wavs:
-		#signal, SR = downsampled_mono_audio(signal, sample_rate, SR)
+        '''
+        #signal, SR = downsampled_mono_audio(signal, sample_rate, SR)
         # print(f)
+        '''
         wav = os.path.join(file_path, f)
         spc,len_audio = wav2spc(wav, fs=SR, n_mels=n_mels) # returns array for display melspec (216,72)
+       
+        '''
         # spec_1 = librosa.display.specshow(spc, hop_length = hop_length, sr = SR, y_axis = 'mel', x_axis='time')
         # print(spc)
         # print(spec_1)
@@ -131,10 +145,12 @@ def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_leng
         # print(f'window size {window}')
         # print(f'length of audio {len_audio}')
         # print(f'time bins in seconds {len_audio/spc.shape[1]}')
+        '''
 
         time_bins = len_audio/spc.shape[1] # in seconds
 
-        '''# curr have seconds we want for winds
+        '''
+        # curr have seconds we want for winds
         # now we need to calc how many time bins we need to meet the number of seconds.
         # able to slice the matrix, to balance the windows.
         # return 
@@ -144,20 +160,26 @@ def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_leng
         # plt.show()
         # return
         # return
-        # print(type(spc))'''
+        # print(type(spc))
+        '''
+
         Y = compute_pyrenote_Y(wav,f, spc, tags, data_path, folder, SR, frame_size, hop_length) # fix this
         computed = windowsize//time_bins #verify, big assumption. are time bins consistant?
         # print(computed*(Y.shape[0]//computed))
         time_axis = int(computed*(Y.shape[0]//computed))
+        '''
         # print(time_axis)
         # print(type(time_axis))
         # print(Y.shape[0]//computed)
+        '''
         freq_axis = int(Y.shape[0]//computed) # 31, 2, 19
+        '''
         # print(f'freq_axis {freq_axis}')
         # print(f'freq_axis type {type(freq_axis)}')
         # # return 
         # print(f'spc split spc[:time_axis,:] shape {spc[:,:time_axis].shape}')
         # print(f'Y split Y[:time_axis] shape {Y[:time_axis].shape}')
+        '''
 
         spc_split = np.split(spc[:,:time_axis],freq_axis,axis = 1)
         Y_split = np.split(Y[:time_axis],freq_axis)
@@ -165,6 +187,8 @@ def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_leng
         spc_split_zero = spc_split[0]
         print(f)
         print(spc_split_zero.shape)
+
+        '''
         # print(type(spc_split_zero))
         # print(spc_split_zero)
         # spec_2 = librosa.display.specshow(spc_split_zero, hop_length = hop_length, sr = SR, y_axis = 'mel', x_axis='time')
@@ -180,21 +204,24 @@ def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_leng
         # return 
 
         # for i in spc:
+        '''
 
-
-        '''# compute_windows(spc,Y)--> array of spc's and their corresponding windows.
+        '''
+        # compute_windows(spc,Y)--> array of spc's and their corresponding windows.
         #compute the seconds, for window length
         #spc matrix and labels array window spcs to match up with the labels
-        # return'''
-
+        # return
+        '''
 
         features["uids"].extend([f]*freq_axis) # need 31 of f
         features["X"].extend(spc_split)#.append(spc)
         features["Y"].extend(Y_split)#.append(Y)
+        '''
         # features["time_bins"].append(time_bins)
 
     # print(filenames)
     # return
+    '''
     return features
 
 
@@ -436,6 +463,7 @@ def load_dataset(data_path, folder, SR, n_mels, frame_size, hop_length, nonBird_
     return X, Y, uids
 
 
+'''
 # datasets_dir, path to training data
 # folder, the title of the train file "train", in configs feature.
 # what about nonBird_labels? 
@@ -443,6 +471,7 @@ def load_dataset(data_path, folder, SR, n_mels, frame_size, hop_length, nonBird_
 
 # what is found? 
 # "found": {"Plasab_song": 0, "Unknown": 0, "Tibtom_song": 0, "Lyrple_song": 0, "Plaaff_song": 0, "Pelgra_call": 0, "Cicatr_song": 0, "Cicorn_song": 0, "Tetpyg_song": 0, "Ptehey_song": 0}
+'''
 
 #WIP
 def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, nonBird_labels, found):
@@ -453,6 +482,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     print("IGNORE MISSING WAV FILES - THEY DONT EXIST")
     # load_data_set returns variables which get fed into model builder 
 
+    '''
     #need
     # folder = 'train'
     # X, Y, uids = load_dataset(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, nonBird_labels, found, use_dump=True)
@@ -470,8 +500,8 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     # print(spec)
     # plt.show()
     # return
+    '''
 
-    #region
     '''
     Input~ (batch_size, num_features)
     For you num_features=len(X[0])
@@ -481,22 +511,23 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
 
 
     [0.24010977 0.23532039 0.19375311 0.20493513 0.20764025 0.21336952
- 0.21472006 0.18257035 0.1642117  0.18358105 0.16941206 0.18236153
- 0.19582106 0.17015569 0.15684327 0.19284132 0.19654424 0.2038911
- 0.19246964 0.17791316 0.20639075 0.18242668 0.2063193  0.21301419
- 0.1842515  0.18990998 0.1990673  0.20012796 0.19997334 0.17124568
- 0.19873606 0.19232446 0.19961198 0.19416666 0.17691506 0.17580959
- 0.18959488 0.1889181  0.19824806 0.19839855 0.19033328 0.1896998
- 0.19550033 0.18701632 0.18685915 0.1859789  0.1825153  0.19059047
- 0.18927313 0.18963294 0.18442841 0.18571979 0.19213313 0.1927422
- 0.19115466 0.17871146 0.18025552 0.1843735  0.18398777 0.1811356
- 0.18121892 0.18593583 0.18929477 0.18724643 0.18790492 0.18681087
- 0.18502367 0.17353761 0.17283072 0.16291472 0.1656819  0.15812412]
+     0.21472006 0.18257035 0.1642117  0.18358105 0.16941206 0.18236153
+     0.19582106 0.17015569 0.15684327 0.19284132 0.19654424 0.2038911
+     0.19246964 0.17791316 0.20639075 0.18242668 0.2063193  0.21301419
+     0.1842515  0.18990998 0.1990673  0.20012796 0.19997334 0.17124568
+     0.19873606 0.19232446 0.19961198 0.19416666 0.17691506 0.17580959
+     0.18959488 0.1889181  0.19824806 0.19839855 0.19033328 0.1896998
+     0.19550033 0.18701632 0.18685915 0.1859789  0.1825153  0.19059047
+     0.18927313 0.18963294 0.18442841 0.18571979 0.19213313 0.1927422
+     0.19115466 0.17871146 0.18025552 0.1843735  0.18398777 0.1811356
+     0.18121892 0.18593583 0.18929477 0.18724643 0.18790492 0.18681087
+     0.18502367 0.17353761 0.17283072 0.16291472 0.1656819  0.15812412]
     '''
-    #endregion
+    
     print("\n")
     print("----------------------------------------------------------------------------------------------")
 
+    '''
     # testing area
     # find_tags(datasets_dir, folder)
 
@@ -518,9 +549,12 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     # spec = librosa.display.specshow(feats['X'][0], hop_length = HOP_LENGTH,sr = SR, y_axis='time', x_axis='mel') # displays rotated
     # print(spec)
     # plt.show()
-    # return 
+    # return
+    ''' 
 
     X, Y, uids = load_pyrenote_dataset(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, 2)
+    
+    '''
     # print(f'X shape {X.shape}') #number of birds, rows of each data column of each data.
     # print(f'len of X {len(X)}')
     # bird1 = X[0] #data point, [0][0] feature value of dp, yes
@@ -535,7 +569,8 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     # print(spec)
     # plt.show()
     # return
-    #region
+    '''
+    
     '''
     X shape (316,)
     len of X 316
@@ -553,8 +588,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     bird1 uid Accipiter-superciliosus-329800.wav
     number of different birds 316
     '''
-    #endregion
-    #region
+    
     '''
     [[0.1471715  0.1471715  0.1471715  ... 0.1471715  0.1471715  0.1471715 ]
     [0.15273927 0.20773703 0.22108233 ... 0.23918882 0.24105152 0.25573134]
@@ -582,19 +616,17 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     Accipiter-superciliosus-329800.wav
     316
     '''
-    #endregion
+    
+    '''
     # return
     # Invalid shape for monophonic audio: ndim=2, shape=(762624, 2)
     # folder = 'train'
     # compute_feature(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, nonBird_labels, found)
     # return
+    '''
 
-
-    # return ...
-    
     # need
     test_dataset = CustomAudioDataset(X, Y, uids) #returns entire data, not sure if best to use all as testing
-
 
     # print(test_dataset.__getitem__(0)) #USEFUL
     # return 
@@ -607,6 +639,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     # need
     # X, Y, uids =  random_split_to_fifty(X, Y, uids) # worth developing further.
 
+    '''
     # print(X[0])
     # print(Y[0])
     # print(uids)
@@ -630,32 +663,56 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     #features above feed into below
 
     # all_tags = create_tags(datasets_dir, folder)
+    '''
 
     # need
     all_tags = [0,1]
 
+    '''
     #print(len(Counter(all_tags)))
     #for c in range(10):
     #    print(Y[c])
     #return
+    '''
     
-
     # need
     X_train, X_val, Y_train, Y_val, uids_train, uids_val = train_test_split(X, Y, uids, test_size=.2)
-    print(X_train[0])
-    print(Y_train[0])
-    print(uids_train[0])
+    # print('\n')
+    # print(X_train[0])
+    # print('\n')
+    # print(Y_train[0])
+    # print('\n')
+    # print(uids_train[0])
+    # print('\n')
 
-    bird1 = X_train[0]
-    print(len(X_train))
-    print(len(Y_train))
-    print(len(uids_train))
+    # bird1 = X_train[0]
+    # print(len(X_train))
+    # print(len(Y_train))
+    # print(len(uids_train))
+    # # return
+
+    # spec = librosa.display.specshow(bird1, hop_length = HOP_LENGTH,sr = SR, y_axis='time', x_axis='mel') # displays rotated here as well 
+    # # print(spec)
+    # plt.show()
+
+    print('\n')
+    print(X_val[0])
+    print('\n')
+    print(Y_val[0])
+    print('\n')
+    print(uids_val[0])
+    print('\n')
+
+    bird1 = X_val[0]
+    print(len(X_val))
+    print(len(Y_val))
+    print(len(uids_val))
     # return
 
     spec = librosa.display.specshow(bird1, hop_length = HOP_LENGTH,sr = SR, y_axis='time', x_axis='mel') # displays rotated here as well 
-    print(spec)
+    # print(spec)
     plt.show()
-    return
+    # return
 
     # return
     # print(X_train.shape, Y_train.shape, uids_train.shape)
@@ -663,7 +720,34 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
 
     train_dataset = CustomAudioDataset(X_train, Y_train, uids_train)
     # test_dataset = CustomAudioDataset(X_test[:6], Y_test[:6], uids_test[:6]) 
+    # X, Y, uid = train_dataset.__getitem__(0)
+    # print('\n')
+    # print(X[0])
+    # print('\n')
+    # print(Y)
+    # print('\n')
+    # print(uid)
+    # print('\n')
+
+    # bird2 = X[0]
+    # spec2 = librosa.display.specshow(bird1, hop_length = HOP_LENGTH,sr = SR, y_axis='time', x_axis='mel')
+    # plt.show()
+    # return
+
     val_dataset = CustomAudioDataset(X_val, Y_val, uids_val)
+    X, Y, uid = val_dataset.__getitem__(0)
+    print('\n')
+    print(X[0])
+    print('\n')
+    print(Y)
+    print('\n')
+    print(uid)
+    print('\n')
+
+    bird2 = X[0]
+    spec2 = librosa.display.specshow(bird1, hop_length = HOP_LENGTH,sr = SR, y_axis='time', x_axis='mel')
+    plt.show()
+    return
 
     return all_tags, n_mels, train_dataset, val_dataset, test_dataset, HOP_LENGTH, SR
 
@@ -681,16 +765,20 @@ def model_build( all_tags, n_mels, train_dataset, val_dataset, Skip, lr, batch_s
     cwd = os.getcwd() 
     os.chdir(outdir)
 
+    #region
     #if torch.cuda.is_available(): #get this to work, does not detect gpu. works on tweety env(slow)
     #device = 'cpu' #torch.device('cuda:0')
     # device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
+    #endregion
     
     #if torch.cuda.is_available(): #get this to work, does not detect gpu. works on tweety env(slow)
     device = torch.device('cpu') #'cuda:0'
     name = torch.cuda.get_device_name()
+    
+    #region
     # device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    #endregion
 
     print(f"Using {name} ")# torch.cuda.get_device_name(0)
 

@@ -7,6 +7,7 @@ from tabulate import tabulate
 '''
 Scoring Precision and Recall is currently a work in progress for Q2
 '''
+
 # region
 # evals = pd.read_csv(os.path.join("data/out","Evaluation_on_data.csv"))
 #print(tabulate(evals, headers='keys', tablefmt='psql'))
@@ -137,7 +138,7 @@ def confusion_matrix(df: pd.DataFrame, col1: str, col2: str):
             .size()
             .unstack(fill_value=0)
             )
-
+#region
 print('\n')
 print('---------------------------------------------------------------------')
 print('\n')
@@ -150,3 +151,4 @@ print('\n')
 print(file_filt['cfnmtx'].value_counts())
 print('\n')
 print('---------------------------------------------------------------------')
+#endregion
