@@ -45,16 +45,17 @@ def load_wav(path, decimate=None):
     data = data.astype(np.float32)
     # print(data.shape)
     if len(data.shape) > 1: # stereo
-        print(f'before mono {data.shape}')
+        # print(f'before mono {data.shape}')
         data = np.mean(data,axis = 1)
-        print(f'post mono {data.shape}')
+        # print(f'post mono {data.shape}')
 
     if decimate is not None:
-        print('decimate is not None')
+        # print('decimate is not None')
         data = signal.decimate(data, decimate) # returns downsampled signal
         fs /= decimate
     else:
-        print('decimate is None')
+        # print('decimate is None')
+        pass
 
     return fs, data
 
