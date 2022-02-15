@@ -111,6 +111,8 @@ class TweetyNetModel:
         if fine_tuning:
             self.model.load_weights(finetune_path)
         train_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        # print(train_data_loader.dataset.__getitem__(0))
+        # return
         val_data_loader = None
 
         if val_dataset != None:
@@ -180,7 +182,9 @@ class TweetyNetModel:
             running_loss = 0.0
             correct = 0.0
             edit_distance = 0.0
-            for i, data in enumerate(train_loader):
+
+            # return
+            for i, data in enumerate(train_loader): # train loader is custom audiodataset, getitem, for spectrogram.
                 inputs, labels, _ = data
                 inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
                 
@@ -249,9 +253,11 @@ class TweetyNetModel:
                 val_correct += (output == labels).float().sum()
                 for j in range(len(labels)):
                     val_edit_distance += syllable_edit_distance(output[j], labels[j])
+
             history["val_loss"].append(val_loss)
             history["val_acc"].append(100 * val_correct / (len(val_loader.dataset) * self.window_size))
             history["val_edit_distance"].append(val_edit_distance / (len(val_loader.dataset) * self.window_size))
+            
             if history["val_acc"][-1] > history["best_weights"]:
                 torch.save(self.model.state_dict(), "best_model_weights.h5")
                 history["best_weights"] = history["val_acc"][-1]
@@ -265,6 +271,7 @@ class TweetyNetModel:
     purpose: Evaluate our model on a test set
     """
     def testing_step(self, test_loader, hop_length, sr):
+        
         predictions = pd.DataFrame()
         self.model.eval()
 
