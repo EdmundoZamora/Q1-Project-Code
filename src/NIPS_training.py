@@ -636,8 +636,9 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     '''
 
     # need
-    test_dataset = CustomAudioDataset(X, Y, uids) #returns entire data, not sure if best to use all as testing
+    # test_dataset = CustomAudioDataset(X, Y, uids) #returns entire data, not sure if best to use all as testing
 
+    #region
     # print(test_dataset.__getitem__(0)) #USEFUL
     # return 
 
@@ -648,7 +649,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     
     # need
     # X, Y, uids =  random_split_to_fifty(X, Y, uids) # worth developing further.
-
+    #endregion
     '''
     # print(X[0])
     # print(Y[0])
@@ -686,7 +687,12 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     '''
     
     # need
-    X_train, X_val, Y_train, Y_val, uids_train, uids_val = train_test_split(X, Y, uids, test_size=.2)
+    X_train, X_val, Y_train, Y_val, uids_train, uids_val = train_test_split(X, Y, uids, test_size=.3) # Train 70% Val 30%
+
+    # X_train, X_val, Y_train, Y_val, uids_train, uids_val = train_test_split(X, Y, uids, test_size=.2)
+
+    X_val, X_test, Y_val, Y_test, uids_val, uids_test = train_test_split(X_val, Y_val, uids_val, test_size=.33)# val 20%, test 10%
+
     #region
     # print('\n')
     # print(X_train[0])
@@ -749,6 +755,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     #endregion
 
     val_dataset = CustomAudioDataset(X_val, Y_val, uids_val)
+    test_dataset = CustomAudioDataset(X_test, Y_test, uids_test)
     
     #region
     # train_dataset

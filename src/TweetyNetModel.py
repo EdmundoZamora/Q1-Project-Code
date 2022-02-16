@@ -186,8 +186,8 @@ class TweetyNetModel:
             # return
             for i, data in enumerate(train_loader): # train loader is custom audiodataset, getitem, for spectrogram.
                 inputs, labels, _ = data
-                print(f"inputs{inputs.shape}")
-                print(f"labels{labels.shape}")
+                # print(f"inputs{inputs.shape}")
+                # print(f"labels{labels.shape}")
 
                 #should be able to do this before this step.
                 #inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
@@ -200,7 +200,7 @@ class TweetyNetModel:
                 output = self.model(inputs, inputs.shape[0], labels.shape[0])   # ones and zeros, temporal bird annotations.
                 #if self.binary:
                 #    labels = torch.from_numpy((np.array([[x] * output.shape[-1] for x in labels])))
-                print(f"output{output.shape}")
+                # print(f"output{output.shape}")
                 # print(output.shape) # torch.Size([64, 2, 72])
                 # print(labels.shape) # torch.Size([64, 86])
 
