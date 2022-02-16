@@ -111,6 +111,8 @@ class TweetyNetModel:
         if fine_tuning:
             self.model.load_weights(finetune_path)
         train_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        # print(train_data_loader.dataset.__getitem__(0))
+        # return
         val_data_loader = None
 
         if val_dataset != None:
@@ -180,7 +182,9 @@ class TweetyNetModel:
             running_loss = 0.0
             correct = 0.0
             edit_distance = 0.0
-            for i, data in enumerate(train_loader):
+
+            # return
+            for i, data in enumerate(train_loader): # train loader is custom audiodataset, getitem, for spectrogram.
                 inputs, labels, _ = data
                 print(f"inputs{inputs.shape}")
                 print(f"labels{labels.shape}")
@@ -188,6 +192,8 @@ class TweetyNetModel:
                 #should be able to do this before this step.
                 #inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
                 #labels = labels.long()
+                # print(inputs.shape) # torch.Size([64, 86, 72])
+                # print(labels.shape) # torch.Size([64, 86]) is expected to be torch.Size([64, 72])
 
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 self.optimizer.zero_grad()
@@ -195,8 +201,11 @@ class TweetyNetModel:
                 #if self.binary:
                 #    labels = torch.from_numpy((np.array([[x] * output.shape[-1] for x in labels])))
                 print(f"output{output.shape}")
+                # print(output.shape) # torch.Size([64, 2, 72])
+                # print(labels.shape) # torch.Size([64, 86])
 
                 loss = self.criterion(output, labels)
+
                 loss.backward()
                 self.optimizer.step()
                 scheduler.step()
@@ -211,6 +220,7 @@ class TweetyNetModel:
                 # print update Improve this to make it better Maybe a global counter
                 if i % 10 == 9:  # print every 10 mini-batches
                     print('[%d, %5d] loss: %.3f' % (e + 1, i + 1, running_loss ))
+                    
             history["loss"].append(running_loss)
             history["acc"].append(100 * correct / (len(train_loader.dataset) * self.window_size))
             history["edit_distance"].append(edit_distance / (len(train_loader.dataset) * self.window_size))
@@ -254,6 +264,7 @@ class TweetyNetModel:
             history["val_loss"].append(val_loss)
             history["val_acc"].append(100 * val_correct / (len(val_loader.dataset) * self.window_size))
             history["val_edit_distance"].append(val_edit_distance / (len(val_loader.dataset) * self.window_size))
+            
             if history["val_acc"][-1] > history["best_weights"]:
                 torch.save(self.model.state_dict(), "best_model_weights.h5")
                 history["best_weights"] = history["val_acc"][-1]
@@ -267,6 +278,7 @@ class TweetyNetModel:
     purpose: Evaluate our model on a test set
     """
     def testing_step(self, test_loader, hop_length, sr):
+        
         predictions = pd.DataFrame()
         self.model.eval()
 
@@ -281,6 +293,7 @@ class TweetyNetModel:
                 #print(labels.dtype)
                 #labels = labels.long()
                 #print(labels.dtype)
+
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
 
                 output = self.model(inputs, inputs.shape[0], labels.shape[0]) # what is this output look like?

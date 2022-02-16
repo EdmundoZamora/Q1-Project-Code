@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
 import torch
+# from torchsummary import summary
 
 #region
 from torch import nn
@@ -313,11 +314,11 @@ def load_pyrenote_dataset(data_path, folder, SR, n_mels, frame_size, hop_length,
     # X = np.array([dataset["X"][i].transpose() for i in inds]).astype(np.float32)/255
 
     # X = np.array([np.rot90(dataset["X"][i].astype(np.float32)/255,3) for i in inds], dtype=object)#.astype(np.float32)/255
-
-    X = np.array([np.rot90(dataset["X"][i].astype(np.float32)/255,3) for i in inds])#.astype(np.float32)/255
-    Y = np.array([dataset["Y"][i] for i in inds], dtype=object)
+    # X = np.array([np.rot90(dataset["X"][i],3) for i in inds]).astype(np.float32)/255 rotation causes frequency prediction outputs instead of timebins
+    X = np.array([dataset["X"][i] for i in inds]).astype(np.float32)/255
+    X = X.reshape(X.shape[0], 1, X.shape[1], X.shape[2])
+    Y = np.array([dataset["Y"][i] for i in inds]).astype(np.longlong)
     uids = np.array([dataset["uids"][i] for i in inds])
-
     # X = dataset['X']
     # Y = dataset['Y']
     # uids = dataset['uids']
@@ -482,7 +483,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     print("IGNORE MISSING WAV FILES - THEY DONT EXIST")
     # load_data_set returns variables which get fed into model builder 
 
-    
+    '''
     #need
     folder = 'train'
     X, Y, uids = load_dataset(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, nonBird_labels, found, use_dump=True)
@@ -509,7 +510,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     test_dataset = CustomAudioDataset(X, Y, uids)
     all_tags = [0,1]
     return all_tags, n_mels, train_dataset, val_dataset, test_dataset, HOP_LENGTH, SR
-    
+    '''
 
     '''
     Input~ (batch_size, num_features)
@@ -686,6 +687,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     
     # need
     X_train, X_val, Y_train, Y_val, uids_train, uids_val = train_test_split(X, Y, uids, test_size=.2)
+    #region
     # print('\n')
     # print(X_train[0])
     # print('\n')
@@ -704,30 +706,32 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     # # print(spec)
     # plt.show()
 
-    print('\n')
-    print(X_val[0])
-    print('\n')
-    print(Y_val[0])
-    print('\n')
-    print(uids_val[0])
-    print('\n')
+    # print('\n')
+    # print(X_val[0])
+    # print('\n')
+    # print(Y_val[0])
+    # print('\n')
+    # print(uids_val[0])
+    # print('\n')
 
-    bird1 = X_val[0]
-    print(len(X_val))
-    print(len(Y_val))
-    print(len(uids_val))
+    # bird1 = X_val[0]
+    # print(len(X_val))
+    # print(len(Y_val))
+    # print(len(uids_val))
     # return
 
-    spec = librosa.display.specshow(bird1, hop_length = HOP_LENGTH,sr = SR, y_axis='time', x_axis='mel') # displays rotated here as well 
+    # spec = librosa.display.specshow(bird1, hop_length = HOP_LENGTH,sr = SR, y_axis='time', x_axis='mel') # displays rotated here as well 
     # print(spec)
-    plt.show()
+    # plt.show()
     # return
 
     # return
     # print(X_train.shape, Y_train.shape, uids_train.shape)
     # # print(X_val.shape, Y_val.shape, uids_val.shape)
+    #endregion
 
     train_dataset = CustomAudioDataset(X_train, Y_train, uids_train)
+    #region
     # test_dataset = CustomAudioDataset(X_test[:6], Y_test[:6], uids_test[:6]) 
     # X, Y, uid = train_dataset.__getitem__(0)
     # print('\n')
@@ -742,32 +746,39 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     # spec2 = librosa.display.specshow(bird1, hop_length = HOP_LENGTH,sr = SR, y_axis='time', x_axis='mel')
     # plt.show()
     # return
+    #endregion
 
     val_dataset = CustomAudioDataset(X_val, Y_val, uids_val)
-    X, Y, uid = val_dataset.__getitem__(0)
-    print('\n')
-    print(X[0])
-    print('\n')
-    print(Y)
-    print('\n')
-    print(uid)
-    print('\n')
+    
+    #region
+    # train_dataset
+    # val_dataset
+    # X, Y, uid = val_dataset.__getitem__(0)
+    # print('\n')
+    # print(X[0])
+    # print('\n')
+    # print(Y)
+    # print('\n')
+    # print(uid)
+    # print('\n')
 
-    bird2 = X[0]
-    spec2 = librosa.display.specshow(bird1, hop_length = HOP_LENGTH,sr = SR, y_axis='time', x_axis='mel')
-    plt.show()
-    return
+    # bird2 = X[0]
+    # spec2 = librosa.display.specshow(bird1, hop_length = HOP_LENGTH,sr = SR, y_axis='time', x_axis='mel')
+    # plt.show()
+    # return
+    #endregion
+    
 
     return all_tags, n_mels, train_dataset, val_dataset, test_dataset, HOP_LENGTH, SR
 
 
 def model_build( all_tags, n_mels, train_dataset, val_dataset, Skip, lr, batch_size, epochs, outdir):
     
-    if Skip:
-        for f in os.listdir(outdir):
-            os.remove(os.path.join(outdir, f))
-    else:   
-        pass
+    # if Skip:
+    #     for f in os.listdir(outdir):
+    #         os.remove(os.path.join(outdir, f))
+    # else:   
+    #     pass
     
     #device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -798,9 +809,10 @@ def model_build( all_tags, n_mels, train_dataset, val_dataset, Skip, lr, batch_s
 
     #timebins from traindataset
     # replace input shape (1, n_mels, 86)
-    # 216 for NIPS
-    # For some reason the number of mels is what dictates the final output shape
-    tweetynet = TweetyNetModel(len(Counter(all_tags)), (1, n_mels, 86), 86, device, binary=False)
+
+    tweetynet = TweetyNetModel(len(Counter(all_tags)), (1, n_mels, 86), 2, device, binary = False)
+    
+    # summary(tweetynet,(1, n_mels, 86))
 
     history, test_out, start_time, end_time, date_str = tweetynet.train_pipeline(train_dataset,val_dataset, None,
                                                                        lr=lr, batch_size=batch_size,epochs=epochs, save_me=True,
