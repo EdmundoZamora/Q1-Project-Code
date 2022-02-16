@@ -156,6 +156,7 @@ class TweetyNet(nn.Module):
             nn.MaxPool2d(kernel_size=pool2_size,
                          stride=pool2_stride),
         )
+        print(self.cnn)
 
         # determine number of features in output after stacking channels
         # we use the same number of features for hidden states
@@ -165,21 +166,28 @@ class TweetyNet(nn.Module):
         tmp_out = self.cnn(tmp_tensor)
         channels_out, freqbins_out = tmp_out.shape[1], tmp_out.shape[2]
         self.rnn_input_size = channels_out * freqbins_out
-
+        print(f"Here are output dimensions of cnn: {tmp_out.shape}")
+        print(f"The RNN Input Size{self.rnn_input_size}")
         if hidden_size is None:
             self.hidden_size = self.rnn_input_size
         else:
             self.hidden_size = hidden_size
-
+        print(f"The RNN hidden layers {self.hidden_size}")
+        print(f"number of layers {num_layers}")
+        print(f"RNN dropout: {rnn_dropout}")
+        print(f"bidirectional: {bidirectional}")
         self.rnn = nn.LSTM(input_size=self.rnn_input_size,
                            hidden_size=self.hidden_size,
                            num_layers=num_layers,
                            dropout=rnn_dropout,
                            bidirectional=bidirectional)
+        print(self.rnn)
 
         # for self.fc, in_features = hidden_size * 2 because LSTM is bidirectional
         # so we get hidden forward + hidden backward as output
         self.fc = nn.Linear(in_features=self.hidden_size * 2, out_features=num_classes)
+        print(self.fc)
+        print(self.hidden_size * 2)
 
     def forward(self, x, input_lengths, target_lengths):
         features = self.cnn(x)

@@ -13,7 +13,6 @@ from CustomAudioDataset import CustomAudioDataset
 from datetime import datetime
 
 
-
 """
 Helper Functions to TweetyNet so it feels more like a Tensorflow Model.
 This includes instantiating the model, training the model and testing. 
@@ -52,6 +51,7 @@ class TweetyNetModel:
         self.batchsize = 32
         self.n_train_examples = self.batchsize *30 
         self.n_valid_examples = self.batchsize *10 
+        print(self.model)
         
 
     """
@@ -182,18 +182,20 @@ class TweetyNetModel:
             edit_distance = 0.0
             for i, data in enumerate(train_loader):
                 inputs, labels, _ = data
-                inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
-                
-                # print(labels.dtype)
-                labels = labels.long()
-                # print(labels.dtype)
+                print(f"inputs{inputs.shape}")
+                print(f"labels{labels.shape}")
+
+                #should be able to do this before this step.
+                #inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
+                #labels = labels.long()
 
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 self.optimizer.zero_grad()
                 output = self.model(inputs, inputs.shape[0], labels.shape[0])   # ones and zeros, temporal bird annotations.
                 #if self.binary:
                 #    labels = torch.from_numpy((np.array([[x] * output.shape[-1] for x in labels])))
-                
+                print(f"output{output.shape}")
+
                 loss = self.criterion(output, labels)
                 loss.backward()
                 self.optimizer.step()
@@ -203,8 +205,8 @@ class TweetyNetModel:
                 running_loss += loss.item()
                 output = torch.argmax(output, dim=1)
                 correct += (output == labels).float().sum()
-                for j in range(len(labels)):
-                    edit_distance += syllable_edit_distance(output[j], labels[j])
+                #for j in range(len(labels)):
+                #    edit_distance += syllable_edit_distance(output[j], labels[j])
 
                 # print update Improve this to make it better Maybe a global counter
                 if i % 10 == 9:  # print every 10 mini-batches
@@ -232,10 +234,10 @@ class TweetyNetModel:
             val_edit_distance = 0.0
             for i, data in enumerate(val_loader):
                 inputs, labels, _ = data
-                inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
-                print(labels.dtype)
-                labels = labels.long()
-                print(labels.dtype)
+                #inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
+                #print(labels.dtype)
+                #labels = labels.long()
+                #print(labels.dtype)
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
 
                 output = self.model(inputs, inputs.shape[0], labels.shape[0])
@@ -247,8 +249,8 @@ class TweetyNetModel:
                 output = torch.argmax(output, dim=1)
 
                 val_correct += (output == labels).float().sum()
-                for j in range(len(labels)):
-                    val_edit_distance += syllable_edit_distance(output[j], labels[j])
+                #for j in range(len(labels)):
+                #    val_edit_distance += syllable_edit_distance(output[j], labels[j])
             history["val_loss"].append(val_loss)
             history["val_acc"].append(100 * val_correct / (len(val_loader.dataset) * self.window_size))
             history["val_edit_distance"].append(val_edit_distance / (len(val_loader.dataset) * self.window_size))
@@ -275,10 +277,10 @@ class TweetyNetModel:
         with torch.no_grad():
             for i, data in enumerate(test_loader):
                 inputs, labels, uids = data
-                inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
-                print(labels.dtype)
-                labels = labels.long()
-                print(labels.dtype)
+                #inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
+                #print(labels.dtype)
+                #labels = labels.long()
+                #print(labels.dtype)
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
 
                 output = self.model(inputs, inputs.shape[0], labels.shape[0]) # what is this output look like?

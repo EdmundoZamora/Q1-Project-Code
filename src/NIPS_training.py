@@ -366,8 +366,7 @@ def compute_feature(data_path, folder, SR, n_mels, frame_size, hop_length, nonBi
     
     for f in filenames:
 		#signal, SR = downsampled_mono_audio(signal, sample_rate, SR)
-        spc = wav2spc(os.path.join(data_path, folder, f), fs=SR, n_mels=n_mels) # 72 lists in a list,should be converted to tensors
-        # print(spc[0])
+        spc,len_audio = wav2spc(os.path.join(data_path, folder, f), fs=SR, n_mels=n_mels) # 72 lists in a list,should be converted to tensors
         # return
         # spec = librosa.display.specshow(spc,sr = SR, hop_length = hop_length, y_axis='mel', x_axis='time')
         # print(spec)
@@ -458,7 +457,8 @@ def load_dataset(data_path, folder, SR, n_mels, frame_size, hop_length, nonBird_
     inds = [i for i, x in enumerate(dataset["X"]) if x.shape[1] == 216]
     # X = np.array([dataset["X"][i].transpose() for i in inds]).astype(np.float32)/255
     X = np.array([np.rot90(dataset["X"][i],3) for i in inds]).astype(np.float32)/255
-    Y = np.array([dataset["Y"][i] for i in inds])
+    X = X.reshape(X.shape[0], 1, X.shape[1], X.shape[2])
+    Y = np.array([dataset["Y"][i] for i in inds]).astype(np.longlong)
     uids = np.array([dataset["uids"][i] for i in inds])
     return X, Y, uids
 
@@ -482,25 +482,34 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     print("IGNORE MISSING WAV FILES - THEY DONT EXIST")
     # load_data_set returns variables which get fed into model builder 
 
-    '''
+    
     #need
-    # folder = 'train'
-    # X, Y, uids = load_dataset(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, nonBird_labels, found, use_dump=True)
-    # print(f'X shape {X.shape}') #number of birds, rows of each data column of each data.
-    # print(f'len of X {len(X)}')
-    # bird1 = X[0] #data point, [0][0] feature value of dp, yes
-    # print(bird1)
-    # print(f'len of bird1 {len(bird1)}') # 216
-    # print(f'shape of bird1 {bird1.shape}') # 216,72, r,c frequency bins, time bins
-    # print(f'arrays inside bird1 {len(X[0][0])}') # 72
-    # print(f'shape of bird1 first array {X[0][0].shape}')
-    # print(f'bird1 uid {uids[0]}')
-    # print(f'number of different birds {len(uids)}')
-    # spec = librosa.display.specshow(bird1, hop_length = HOP_LENGTH,sr = SR, y_axis='mel', x_axis='time') # displays rotated
-    # print(spec)
-    # plt.show()
-    # return
-    '''
+    folder = 'train'
+    X, Y, uids = load_dataset(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, nonBird_labels, found, use_dump=True)
+    print(f'X shape {X.shape}') #number of birds, rows of each data column of each data.
+    print(f'len of X {len(X)}')
+    bird1 = X[0] #data point, [0][0] feature value of dp, yes
+    bird1 = bird1.reshape(bird1.shape[1], bird1.shape[2])
+    print(bird1)
+    print(f'len of bird1 {len(bird1)}') # 216
+    print(f'shape of bird1 {bird1.shape}') # 216,72, r,c frequency bins, time bins
+    print(f'arrays inside bird1 {len(X[0][0])}') # 72
+    print(f'shape of bird1 first array {X[0][0].shape}')
+    print(f'bird1 uid {uids[0]}')
+    print(f'number of different birds {len(uids)}')
+    spec = librosa.display.specshow(bird1, hop_length = HOP_LENGTH,sr = SR, y_axis='mel', x_axis='time') # displays rotated
+    print(spec)
+    plt.show()
+    X_train, X_val, Y_train, Y_val, uids_train, uids_val = train_test_split(X, Y, uids, test_size=.2)
+    train_dataset = CustomAudioDataset(X_train, Y_train, uids_train)
+    val_dataset = CustomAudioDataset(X_val, Y_val, uids_val)
+    #
+    # Actually subset for a test set
+    #
+    test_dataset = CustomAudioDataset(X, Y, uids)
+    all_tags = [0,1]
+    return all_tags, n_mels, train_dataset, val_dataset, test_dataset, HOP_LENGTH, SR
+    
 
     '''
     Input~ (batch_size, num_features)
@@ -773,8 +782,9 @@ def model_build( all_tags, n_mels, train_dataset, val_dataset, Skip, lr, batch_s
     
     #if torch.cuda.is_available(): #get this to work, does not detect gpu. works on tweety env(slow)
     device = torch.device('cpu') #'cuda:0'
-    name = torch.cuda.get_device_name()
-    
+    # Does not work unless there is a NVidia gpu available.
+    # name = torch.cuda.get_device_name()
+    name = "CPU"
     #region
     # device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -788,8 +798,9 @@ def model_build( all_tags, n_mels, train_dataset, val_dataset, Skip, lr, batch_s
 
     #timebins from traindataset
     # replace input shape (1, n_mels, 86)
-
-    tweetynet = TweetyNetModel(len(Counter(all_tags)), (1, n_mels, 86), device, binary=False)
+    # 216 for NIPS
+    # For some reason the number of mels is what dictates the final output shape
+    tweetynet = TweetyNetModel(len(Counter(all_tags)), (1, n_mels, 86), 86, device, binary=False)
 
     history, test_out, start_time, end_time, date_str = tweetynet.train_pipeline(train_dataset,val_dataset, None,
                                                                        lr=lr, batch_size=batch_size,epochs=epochs, save_me=True,
