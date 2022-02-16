@@ -186,19 +186,26 @@ class TweetyNetModel:
             # return
             for i, data in enumerate(train_loader): # train loader is custom audiodataset, getitem, for spectrogram.
                 inputs, labels, _ = data
-                inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
+                # print(inputs.shape) # torch.Size([64, 86, 72])
+                # print(labels.shape) # torch.Size([64, 86]) is expected to be torch.Size([64, 72])
+                inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[2], inputs.shape[1]) # torch.Size([64, 1, 72, 86]) instead of torch.Size([64, 1, 86, 72])
+                # print(inputs.shape) # torch.Size([64, 1, 72, 86])
                 
                 # print(labels.dtype)
                 labels = labels.long()
                 # print(labels.dtype)
+                # print(labels.shape)
 
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 self.optimizer.zero_grad()
                 output = self.model(inputs, inputs.shape[0], labels.shape[0])   # ones and zeros, temporal bird annotations.
                 #if self.binary:
                 #    labels = torch.from_numpy((np.array([[x] * output.shape[-1] for x in labels])))
-                
+                # print(output.shape) # torch.Size([64, 2, 72])
+                # print(labels.shape) # torch.Size([64, 86])
+
                 loss = self.criterion(output, labels)
+
                 loss.backward()
                 self.optimizer.step()
                 scheduler.step()
@@ -213,6 +220,7 @@ class TweetyNetModel:
                 # print update Improve this to make it better Maybe a global counter
                 if i % 10 == 9:  # print every 10 mini-batches
                     print('[%d, %5d] loss: %.3f' % (e + 1, i + 1, running_loss ))
+                    
             history["loss"].append(running_loss)
             history["acc"].append(100 * correct / (len(train_loader.dataset) * self.window_size))
             history["edit_distance"].append(edit_distance / (len(train_loader.dataset) * self.window_size))
@@ -236,7 +244,7 @@ class TweetyNetModel:
             val_edit_distance = 0.0
             for i, data in enumerate(val_loader):
                 inputs, labels, _ = data
-                inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
+                inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[2], inputs.shape[1])
                 print(labels.dtype)
                 labels = labels.long()
                 print(labels.dtype)
@@ -282,7 +290,7 @@ class TweetyNetModel:
         with torch.no_grad():
             for i, data in enumerate(test_loader):
                 inputs, labels, uids = data
-                inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
+                inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[2], inputs.shape[1])
                 print(labels.dtype)
                 labels = labels.long()
                 print(labels.dtype)

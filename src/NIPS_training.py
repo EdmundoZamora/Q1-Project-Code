@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
 import torch
+# from torchsummary import summary
 
 #region
 from torch import nn
@@ -740,6 +741,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
 
     val_dataset = CustomAudioDataset(X_val, Y_val, uids_val)
     
+    #region
     # train_dataset
     # val_dataset
     # X, Y, uid = val_dataset.__getitem__(0)
@@ -755,6 +757,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     # spec2 = librosa.display.specshow(bird1, hop_length = HOP_LENGTH,sr = SR, y_axis='time', x_axis='mel')
     # plt.show()
     # return
+    #endregion
     
 
     return all_tags, n_mels, train_dataset, val_dataset, test_dataset, HOP_LENGTH, SR
@@ -798,6 +801,8 @@ def model_build( all_tags, n_mels, train_dataset, val_dataset, Skip, lr, batch_s
     # replace input shape (1, n_mels, 86)
 
     tweetynet = TweetyNetModel(len(Counter(all_tags)), (1, n_mels, 86), 2, device, binary = False)
+    
+    # summary(tweetynet,(1, n_mels, 86))
 
     history, test_out, start_time, end_time, date_str = tweetynet.train_pipeline(train_dataset,val_dataset, None,
                                                                        lr=lr, batch_size=batch_size,epochs=epochs, save_me=True,
