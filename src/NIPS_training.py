@@ -457,7 +457,7 @@ def load_dataset(data_path, folder, SR, n_mels, frame_size, hop_length, nonBird_
     #this section here has me confused, rotates the spectrograms, microfaune implementation.
     inds = [i for i, x in enumerate(dataset["X"]) if x.shape[1] == 216]
     # X = np.array([dataset["X"][i].transpose() for i in inds]).astype(np.float32)/255
-    X = np.array([np.rot90(dataset["X"][i],3) for i in inds]).astype(np.float32)/255
+    X = np.array([(dataset["X"][i],3) for i in inds]).astype(np.float32)/255
     X = X.reshape(X.shape[0], 1, X.shape[1], X.shape[2])
     Y = np.array([dataset["Y"][i] for i in inds]).astype(np.longlong)
     uids = np.array([dataset["uids"][i] for i in inds])
@@ -794,8 +794,10 @@ def model_build( all_tags, n_mels, train_dataset, val_dataset, Skip, lr, batch_s
     #if torch.cuda.is_available(): #get this to work, does not detect gpu. works on tweety env(slow)
     device = torch.device('cpu') #'cuda:0'
     # Does not work unless there is a NVidia gpu available.
-    # name = torch.cuda.get_device_name()
-    name = "CPU"
+    if torch.cuda.is_available():
+        name = torch.cuda.get_device_name()
+    else:
+        name = "CPU"
     #region
     # device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -810,7 +812,7 @@ def model_build( all_tags, n_mels, train_dataset, val_dataset, Skip, lr, batch_s
     #timebins from traindataset
     # replace input shape (1, n_mels, 86)
 
-    tweetynet = TweetyNetModel(len(Counter(all_tags)), (1, n_mels, 86), 2, device, binary = False)
+    tweetynet = TweetyNetModel(len(Counter(all_tags)), (1, n_mels, 86), 86, device, binary = False)
     
     # summary(tweetynet,(1, n_mels, 86))
 
@@ -834,6 +836,7 @@ def evaluate(model,test_dataset, date_str, hop_length, sr, outdir,temporal_graph
     test_out, time_segs = tweetynet.test_load_step(test_dataset, hop_length, sr, model_weights=model_weights) 
     test_out.to_csv(os.path.join(outdir,"Evaluation_on_data.csv"))
     time_segs.to_csv(os.path.join(outdir,"Time_intervals.csv"))
+    '''
     orig_stdout = sys.stdout
     sys.stdout = open(os.path.join('data/out','file_score_rates.txt'), 'w')
     file_score(temporal_graphs)
@@ -841,4 +844,5 @@ def evaluate(model,test_dataset, date_str, hop_length, sr, outdir,temporal_graph
     sys.stdout = orig_stdout
     file_graph_temporal(temporal_graphs) 
     file_graph_temporal_rates(temporal_graphs)
+    '''
     return print("Finished Classifcation")

@@ -19,23 +19,23 @@ def make_dir(dir_path):
     if not os.path.isdir(dir_path):
         os.mkdir(dir_path)
         
-def save(signal, sample_rate, new_dir):
-    make_dir(aug_dir + dataset_name + '/' + new_dir)
-    new_file_path = aug_dir + dataset_name + '/' + new_dir + '/' + filename
+def save(signal, sample_rate, aug_dir, dataset_name, feature_name, filename, ):
+    make_dir(os.path.join(aug_dir, dataset_name))
+    new_file_path = os.path.join(aug_dir, dataset_name, feature_name + "_" + filename)
     if not os.path.isfile(new_file_path):
         wavfile.write(new_file_path, sample_rate, signal)
         
-@dispatch(str, object, object, object) 
-def augment_and_save(feature_name, augment_function, signal, sample_rate):
-    if not os.path.isfile(aug_dir + dataset_name + '/' + feature_name + '/' + filename):
-        save(augment_function(signal, sample_rate), sample_rate, feature_name)
+@dispatch(str, object, object, object, object, object, object) 
+def augment_and_save(feature_name, augment_function, signal, sample_rate, aug_dir, dataset_name, filename ):
+    if not os.path.isfile(os.path.join(aug_dir, dataset_name, feature_name + "_"+ filename)):
+        save(augment_function(signal, sample_rate), sample_rate, aug_dir, dataset_name, feature_name, filename)
     else:
         print('Augmented file already exists')
         
-@dispatch(str, object, object, object, object) 
-def augment_and_save(feature_name, augment_function, signal, sample_rate, factor):
-    if not os.path.isfile(aug_dir + dataset_name + '/' + feature_name + '_' + str(factor) + '/' + filename):
-        save(augment_function(signal, sample_rate, factor), sample_rate, feature_name + '_' + str(factor))
+@dispatch(str, object, object, object, object, object, object, object) 
+def augment_and_save(feature_name, augment_function, signal, sample_rate, factor, aug_dir, dataset_name, filename ):
+    if not os.path.isfile(os.path.join(aug_dir, dataset_name, feature_name + '_' + str(factor) + "_"+ filename)):
+        save(augment_function(signal, sample_rate, factor), sample_rate, aug_dir, dataset_name, feature_name + '_' + str(factor), filename)
     else:
         print('Augmented file already exists')
 
@@ -87,16 +87,37 @@ def add_gaussian_noise(signal, sample_rate):
     noise_modulated_signal = noise_modulated_signal.astype(type(signal[0]))
     return noise_modulated_signal
 
-def augment_data(dataset_name, filename, sr):
-    filepath = orig_dir + dataset_name + '/' + filename
+def augment_data(dataset_name, filename, orig_dir, aug_dir, sr):
+    filepath = os.path.join(orig_dir, dataset_name, filename)
     signal, sample_rate = librosa.load(filepath, sr)
     
     # Add augmentations here
-    augment_and_save('pitch', augment_pitch, signal, sample_rate, 1.1)
-    augment_and_save('noise', augment_noise, signal, sample_rate, 0.02)
-    augment_and_save('speed', augment_speed, signal, sample_rate, 1.1)
-    augment_and_save('colored_noise', add_colored_noise, signal, sample_rate, 1)
-    augment_and_save('gaussian_noise', add_gaussian_noise, signal, sample_rate)
+    augment_and_save('pitch', augment_pitch, signal, sample_rate, 1.1, aug_dir, dataset_name, filename)
+    print("----------------------------------------------------------------------------------------------")
+    print("\n")
+    print("Done: Pitch Augmentation")
+    print("\n")
+    print("----------------------------------------------------------------------------------------------")
+    augment_and_save('noise', augment_noise, signal, sample_rate, 0.02, aug_dir, dataset_name, filename)
+    print("----------------------------------------------------------------------------------------------")
+    print("\n")
+    print("Done: Noise Augmentation")
+    print("\n")
+    print("----------------------------------------------------------------------------------------------")
+    ## Will require us to get labels involved
+    # augment_and_save('speed', augment_speed, signal, sample_rate, 1.1) #, aug_dir, dataset_name, filename)
+    augment_and_save('colored_noise', add_colored_noise, signal, sample_rate, 1, aug_dir, dataset_name, filename)
+    print("----------------------------------------------------------------------------------------------")
+    print("\n")
+    print("Done: Colored Noise Augmentation")
+    print("\n")
+    print("----------------------------------------------------------------------------------------------")
+    augment_and_save('gaussian_noise', add_gaussian_noise, signal, sample_rate, aug_dir, dataset_name, filename)
+    print("----------------------------------------------------------------------------------------------")
+    print("\n")
+    print("Done: Gaussian Noise Augmentation")
+    print("\n")
+    print("----------------------------------------------------------------------------------------------")
     #augment_tempo_and_save(filepath, 1.1)
     
     """
@@ -107,8 +128,34 @@ def augment_data(dataset_name, filename, sr):
     s = augment_noise(signal, sample_rate, noise_factor)
     save(s, sample_rate, 'pitch_%s_noise_%s' % (pitch_factor, noise_factor))
     """
+def create_augmentation(Skip, orig_dir, aug_dir, sample_rates):
+    # Example input:
+    # orig_dir = './original_data/'
+    # aug_dir = './augmented_data/'
+    # sample_rates = {"xenocanto": 384000}
+    if not Skip:
+        print("----------------------------------------------------------------------------------------------")
+        print("\n")
+        print("Collecting files for data augmentation")
+        print("\n")
+        print("----------------------------------------------------------------------------------------------")
+        print(orig_dir)
+        print(aug_dir)
+        print(sample_rates)
+        make_dir(aug_dir)
+        for subdir in [x[0] for x in os.walk(orig_dir)][1:]:
+            dataset_name = subdir.split('\\')[-1]
+            print(dataset_name)
+            print(aug_dir + dataset_name)
+            print(os.path.join(aug_dir, dataset_name))
 
-
+            make_dir(os.path.join(aug_dir, dataset_name))
+            for filename in os.listdir(subdir):
+                if filename.endswith(".wav"):
+                    print(subdir + filename)
+                    augment_data(dataset_name, filename, orig_dir, aug_dir, sample_rates[dataset_name])
+'''
+#region
 def main():
     orig_dir = './original_data/'
     aug_dir = './augmented_data/'
@@ -124,3 +171,5 @@ def main():
                 augment_data(dataset_name, filename, sample_rates[dataset_name])
                 print()
 main()
+#endregion
+'''

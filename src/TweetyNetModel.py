@@ -186,12 +186,12 @@ class TweetyNetModel:
             # return
             for i, data in enumerate(train_loader): # train loader is custom audiodataset, getitem, for spectrogram.
                 inputs, labels, _ = data
-                print(f"inputs{inputs.shape}")
-                print(f"labels{labels.shape}")
+                #print(f"inputs{inputs.shape}")
+                #print(f"labels{labels.shape}")
 
                 #should be able to do this before this step.
-                #inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
-                #labels = labels.long()
+                # inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
+                # labels = labels.long()
                 # print(inputs.shape) # torch.Size([64, 86, 72])
                 # print(labels.shape) # torch.Size([64, 86]) is expected to be torch.Size([64, 72])
 
@@ -200,7 +200,7 @@ class TweetyNetModel:
                 output = self.model(inputs, inputs.shape[0], labels.shape[0])   # ones and zeros, temporal bird annotations.
                 #if self.binary:
                 #    labels = torch.from_numpy((np.array([[x] * output.shape[-1] for x in labels])))
-                print(f"output{output.shape}")
+                # print(f"output{output.shape}")
                 # print(output.shape) # torch.Size([64, 2, 72])
                 # print(labels.shape) # torch.Size([64, 86])
 
@@ -222,8 +222,9 @@ class TweetyNetModel:
                     print('[%d, %5d] loss: %.3f' % (e + 1, i + 1, running_loss ))
                     
             history["loss"].append(running_loss)
-            history["acc"].append(100 * correct / (len(train_loader.dataset) * self.window_size))
-            history["edit_distance"].append(edit_distance / (len(train_loader.dataset) * self.window_size))
+            history["acc"].append(100 * correct / (len(train_loader.dataset) * self.model.input_shape[-1]))
+            print(100 * correct / (len(train_loader.dataset) * self.model.input_shape[-1])
+            history["edit_distance"].append(edit_distance / (len(train_loader.dataset) * self.model.input_shape[-1]))
             if val_loader != None:
                 self.validation_step(val_loader, history)
         print('Finished Training')
@@ -262,8 +263,8 @@ class TweetyNetModel:
                 #for j in range(len(labels)):
                 #    val_edit_distance += syllable_edit_distance(output[j], labels[j])
             history["val_loss"].append(val_loss)
-            history["val_acc"].append(100 * val_correct / (len(val_loader.dataset) * self.window_size))
-            history["val_edit_distance"].append(val_edit_distance / (len(val_loader.dataset) * self.window_size))
+            history["val_acc"].append(100 * val_correct / (len(val_loader.dataset) * self.model.input_shape[-1]))
+            history["val_edit_distance"].append(val_edit_distance / (len(val_loader.dataset) * self.model.input_shape[-1]))
             
             if history["val_acc"][-1] > history["best_weights"]:
                 torch.save(self.model.state_dict(), "best_model_weights.h5")
