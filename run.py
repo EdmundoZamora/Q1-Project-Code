@@ -15,6 +15,7 @@ sys.path.insert(0, 'src')
 import env_setup
 from etl import get_data
 from NIPS_training import apply_features, model_build, evaluate
+from Audio_Data_Augmentation import create_augmentation
 
 def main(targets):
     '''
@@ -40,9 +41,18 @@ def main(targets):
         # make the data target
         data = get_data(Skip, **data_cfg)
 
+    if 'augment' in targets:
+        if "skip" in targets:
+            Skip = True
+        else:
+            Skip = False
+        with open('config/augment-params.json') as fh:
+            augment_cfg = json.load(fh)
+            data = create_augmentation(Skip, **augment_cfg)
+
     if 'features' in targets:
         if 'skip' in targets:
-            # data = os.path.join('data/raw',"NIPS4B_BIRD_CHALLENGE_TRAIN_TEST_WAV")
+            #data = os.path.join('data/raw',"NIPS4B_BIRD_CHALLENGE_TRAIN_TEST_WAV")
             data = os.path.join('data',"PYRE")
 
             with open('config/features-params.json') as fh:
