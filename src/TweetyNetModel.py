@@ -186,8 +186,6 @@ class TweetyNetModel:
             # return
             for i, data in enumerate(train_loader): # train loader is custom audiodataset, getitem, for spectrogram.
                 inputs, labels, _ = data
-                #print(f"inputs{inputs.shape}")
-                #print(f"labels{labels.shape}")
 
                 #should be able to do this before this step.
                 # inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
@@ -223,7 +221,7 @@ class TweetyNetModel:
                     
             history["loss"].append(running_loss)
             history["acc"].append(100 * correct / (len(train_loader.dataset) * self.model.input_shape[-1]))
-            print(100 * correct / (len(train_loader.dataset) * self.model.input_shape[-1])
+            print(100 * correct / (len(train_loader.dataset) * self.model.input_shape[-1]))
             history["edit_distance"].append(edit_distance / (len(train_loader.dataset) * self.model.input_shape[-1]))
             if val_loader != None:
                 self.validation_step(val_loader, history)
