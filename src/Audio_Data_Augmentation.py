@@ -93,31 +93,11 @@ def augment_data(dataset_name, filename, orig_dir, aug_dir, sr):
     
     # Add augmentations here
     augment_and_save('pitch', augment_pitch, signal, sample_rate, 1.1, aug_dir, dataset_name, filename)
-    print("----------------------------------------------------------------------------------------------")
-    print("\n")
-    print("Done: Pitch Augmentation")
-    print("\n")
-    print("----------------------------------------------------------------------------------------------")
     augment_and_save('noise', augment_noise, signal, sample_rate, 0.02, aug_dir, dataset_name, filename)
-    print("----------------------------------------------------------------------------------------------")
-    print("\n")
-    print("Done: Noise Augmentation")
-    print("\n")
-    print("----------------------------------------------------------------------------------------------")
     ## Will require us to get labels involved
     # augment_and_save('speed', augment_speed, signal, sample_rate, 1.1) #, aug_dir, dataset_name, filename)
     augment_and_save('colored_noise', add_colored_noise, signal, sample_rate, 1, aug_dir, dataset_name, filename)
-    print("----------------------------------------------------------------------------------------------")
-    print("\n")
-    print("Done: Colored Noise Augmentation")
-    print("\n")
-    print("----------------------------------------------------------------------------------------------")
     augment_and_save('gaussian_noise', add_gaussian_noise, signal, sample_rate, aug_dir, dataset_name, filename)
-    print("----------------------------------------------------------------------------------------------")
-    print("\n")
-    print("Done: Gaussian Noise Augmentation")
-    print("\n")
-    print("----------------------------------------------------------------------------------------------")
     #augment_tempo_and_save(filepath, 1.1)
     
     """
@@ -150,6 +130,11 @@ def create_augmentation(Skip, orig_dir, aug_dir, sample_rates):
             print(os.path.join(aug_dir, dataset_name))
 
             make_dir(os.path.join(aug_dir, dataset_name))
+            print("----------------------------------------------------------------------------------------------")
+            print("\n")
+            print(f"Done: {subdir}")
+            print("\n")
+            print("----------------------------------------------------------------------------------------------")
             for filename in os.listdir(subdir):
                 if filename.endswith(".wav"):
                     print(subdir + filename)
