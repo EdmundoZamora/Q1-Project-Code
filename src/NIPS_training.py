@@ -102,7 +102,6 @@ def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_leng
     # print(filenames)
     true_wavs = [i for i in filenames if i in valid_filenames] # keep in mind not all wavs have been downloaded yet.
     
-    
     #region
     # print(os.path.join(data_path,'birdwavs.txt'))
     #C:\Users\lianl\Repositories\Q1-Project-Code\data\PYRE\ birdwavs.txt
@@ -120,13 +119,11 @@ def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_leng
     "annotations in the format annotation_{folder}xxx.csv"
     #endregion
     
-    
     tags = create_pyrenote_tags(data_path, folder)
     '''
     # print(tags)
     # return
     ''' 
-    
     
     for f in true_wavs:
         '''
