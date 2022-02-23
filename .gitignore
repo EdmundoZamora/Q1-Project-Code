@@ -1,5 +1,6 @@
 data/raw/
 PyreNote_Wavs/
+notebooks/
 *pyc
 *wav
 *pkl
@@ -7,4 +8,4 @@ PyreNote_Wavs/
 */.ipynb_checkpoints/*
 .ipynb_checkpoints/*
 src/__pycache__/
-*.ipynb
+
