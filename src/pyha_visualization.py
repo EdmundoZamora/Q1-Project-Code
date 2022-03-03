@@ -4,13 +4,13 @@ import json
 #from .microfaune_package.microfaune.detection import RNNDetector
 
 #from .microfaune_package.microfaune import audio
-from TweetyNetAudio import load_wav
+from src.TweetyNetAudio import load_wav
 import matplotlib.pyplot as plt
 import pandas as pd
 import scipy.signal as scipy_signal
 import numpy as np
 import seaborn as sns
-from IsoAutio import *
+from src.IsoAutio import *
 
 
 def local_line_graph(
