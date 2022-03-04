@@ -52,9 +52,11 @@ def main(targets):
 
     if 'features' in targets:
         if 'skip' in targets:
-            #data = os.path.join('data/raw',"NIPS4B_BIRD_CHALLENGE_TRAIN_TEST_WAV")
-            data = os.path.join('data',"PYRE")
-
+            data = None
+            if "nips" in targets:
+                data = os.path.join('data', 'raw',"NIPS4B_BIRD_CHALLENGE_TRAIN_TEST_WAV")
+            elif "pyre" in targets:
+                data = os.path.join('data',"PYRE")
             with open('config/features-params.json') as fh:
                 feats_cfg = json.load(fh)
 

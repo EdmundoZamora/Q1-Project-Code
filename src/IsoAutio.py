@@ -1,6 +1,6 @@
 # from .microfaune_package.microfaune.detection import RNNDetector
 # from .microfaune_package.microfaune import audio
-import TweetyNetAudio
+import src.TweetyNetAudio
 
 import pandas as pd
 import scipy.signal as scipy_signal

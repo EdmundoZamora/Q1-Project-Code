@@ -105,7 +105,7 @@ class TweetyNetModel:
         the model made, and the duration of the training.
     purpose: Set up training TweetyNet, to save weights, and test the model after training
     """
-    def train_pipeline(self, train_dataset, val_dataset=None, test_dataset=None, lr=.005, batch_size=64,
+    def train_pipeline(self, train_dataset, val_dataset=None, lr=.005, batch_size=64,
                        epochs=100, save_me=True, fine_tuning=False, finetune_path=None, outdir=None):
         
         if fine_tuning:
@@ -135,10 +135,6 @@ class TweetyNetModel:
         end_time = datetime.now()
         self.runtime = end_time - start_time
         test_out = []
-
-        if test_dataset != None:
-            test_data_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
-            test_out = self.testing_step(test_data_loader)
 
         if save_me: # save to temp?
             date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -276,15 +272,18 @@ class TweetyNetModel:
     output: predictins that the model made
     purpose: Evaluate our model on a test set
     """
-    def testing_step(self, test_loader, hop_length, sr):
+    def testing_step(self, test_loader, hop_length, sr, window_size):
         
         predictions = pd.DataFrame()
         self.model.eval()
 
         st_time = []
-        for i in range(216): # will change to be more general, does it only for one trainfile?
+        dataiter = iter(test_loader)
+        label, _, _ = dataiter.next()
+        print(label.shape)
+        for i in range(label.shape[-1]): # will change to be more general, does it only for one trainfile?
             st_time.append(get_time(i, hop_length, sr))
-
+        st_time = np.array(st_time)
         with torch.no_grad():
             for i, data in enumerate(test_loader):
                 inputs, labels, uids = data
@@ -300,38 +299,58 @@ class TweetyNetModel:
 
                 temp_uids = []
                 files = []
+                window_file = []
+                window_number = []
+                frame_number = []
+                overall_frame_number = []
+                st_batch_times = []
                 if self.binary: # weakly labeled
                     labels = torch.from_numpy((np.array([[x] * output.shape[-1] for x in labels])))
                     temp_uids = np.array([[x] * output.shape[-1] for x in uids])
                     files.append(u)
                 else:  # in the case of strongly labeled data
                     for u in uids:
+                        st_batch_times.extend(st_time + (window_size*int(u.split("_")[0])))
                         for j in range(output.shape[-1]):
-                             temp_uids.append(str(j) + "_" + u)
-                             files.append(u)
+                             temp_uids.append(str(j + (output.shape[-1]*int(u.split("_")[0]))) + "_" + u)
+                             window_file.append(u)
+                             frame_number.append(j)
+                             overall_frame_number.append(j+ (output.shape[-1]*int(u.split("_")[0])))
+                             window_number.append(int(u.split("_")[0]))
+                             files.append("_".join(u.split("_")[1:]))
                     temp_uids = np.array(temp_uids)
+                    window_file = np.array(window_file)
+                    window_number = np.array(window_number)
+                    frame_number = np.array(frame_number)
+                    overall_frame_number = np.array(overall_frame_number)
+                    st_batch_times = np.array(st_batch_times)
                 zero_pred = output[:, 0, :]
                 one_pred = output[:, 1, :]
 
                 pred = torch.argmax(output, dim=1) 
-                
-
-                d = {"uid": temp_uids.flatten(),"file":files, "zero_pred": zero_pred.flatten(), "one_pred": one_pred.flatten(), "pred": pred.flatten(),"label": labels.flatten()}
+                d = {"uid": temp_uids.flatten(), "window file": window_file.flatten(), "file":files, 
+                        "overall frame number": overall_frame_number, "frame number": frame_number, "window number": window_number, 
+                        "zero_pred": zero_pred.flatten(), "one_pred": one_pred.flatten(), 
+                        "pred": pred.flatten(),"label": labels.flatten(), "temporal_frame_start_times": st_batch_times.flatten()}
                 new_preds = pd.DataFrame(d)
-
                 predictions = predictions.append(new_preds)
 
-                tim = {"temporal_frame_start_times": st_time}
-                time_secs = pd.DataFrame(tim)
+                #tim = {"temporal_frame_start_times": st_time}
+                #time_secs = pd.DataFrame(tim)
 
-                nu_time = pd.concat([time_secs]*425, ignore_index=True)
+                #nu_time = pd.concat([time_secs]*425, ignore_index=True)
 
-                extracted_col = nu_time["temporal_frame_start_times"]
+                #extracted_col = nu_time["temporal_frame_start_times"]
                 
-                predictions_timed = predictions.join(extracted_col)
-
+                #predictions_timed = predictions.join(extracted_col)
+                
+        #predictions = prediction_fix(predictions, label.shape[-1])
+        predictions = predictions.sort_values(["file", "overall frame number"])
+        predictions = predictions.reset_index(drop=True)
+        tim = {"temporal_frame_start_times": st_time}
+        time_secs = pd.DataFrame(tim)
         print('Finished Testing')
-        return predictions_timed, time_secs
+        return predictions, time_secs
 
     """
     Function: test_load_step
@@ -339,12 +358,12 @@ class TweetyNetModel:
     output: test_out are the predictions the model made.
     purpose: Allow us to load older model weights and evaluate predictions
     """
-    def test_load_step(self, test_dataset, hop_length, sr, batch_size=64,model_weights=None):
+    def test_load_step(self, test_dataset, hop_length, sr, batch_size=64, model_weights=None, window_size=2):
         if model_weights != None:
             self.model.load_state_dict(torch.load(model_weights))
             
         test_data_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
-        test_out = self.testing_step(test_data_loader,hop_length,sr)
+        test_out = self.testing_step(test_data_loader,hop_length,sr, window_size)
         return test_out
 
     def load_weights(self, model_weights):
@@ -376,3 +395,40 @@ class TweetyNetModel:
                 new_preds = pd.DataFrame(d)
                 predictions = predictions.append(new_preds)
         return predictions
+
+def increase_uid(row,i):
+    species = row['uid']
+    spec = species.split('_')
+    uid_num = int(spec[0]) + (i*86)
+    spec[0] = str(uid_num)
+    spec_to = '_'.join(spec)
+    return spec_to
+
+def increase_overall_frame_number(row,i):
+    f_num = row['overall frame number']
+    f_num = f_num+ (i*86)
+    return f_num
+
+def increase_time(row,i):
+    time = row['temporal_frame_start_times']
+    time += (i*2)
+    return time
+
+def prediction_fix(new_preds, number_time_bins):
+    nips_fix = []
+    #print(new_preds.shape)
+    #print(pd.unique(new_preds["file"]))
+    for fil in pd.unique(new_preds["file"]):
+        windows = new_preds[new_preds["file"] == fil].shape[0]//number_time_bins
+        sorted_preds = new_preds[new_preds["file"] == fil].sort_values("overall frame number")
+        #print(f'{windows} windows')
+        for i in range(windows):
+            #print(f'Window {i + 1} starts at index {i * 86} and ends at index {(i+1)*86}')
+            curr_win = sorted_preds.iloc[i * 86:(i+1)*86,:].copy(True)
+            curr_win['uid'] = curr_win.apply(lambda row: increase_uid(row,i),axis = 1)
+            curr_win['temporal_frame_start_times'] = curr_win.apply(lambda row: increase_time(row,i),axis = 1)
+            #curr_win['overall frame number'] = curr_win.apply(lambda row: increase_overall_frame_number(row, i), axis=1)
+            nips_fix.append(curr_win)
+
+    nips_fix = pd.concat(nips_fix)
+    return nips_fix
