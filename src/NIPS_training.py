@@ -30,7 +30,7 @@ from CustomAudioDataset import CustomAudioDataset
 from TweetyNetModel import TweetyNetModel
 
 import matplotlib.pyplot as plt
-from Load_data_functions import load_dataset, load_pyrenote_dataset, load_pyrenote_splits
+from Load_data_functions import load_dataset, load_pyrenote_dataset, load_pyrenote_splits, load_splits
 
 
 '''
@@ -70,6 +70,9 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
         #plt.show()
         X_train, X_val, Y_train, Y_val, uids_train, uids_val = train_test_split(X, Y, uids, test_size=.3)
         X_val, X_test, Y_val, Y_test, uids_val, uids_test = train_test_split(X_val, Y_val, uids_val, test_size=.66)
+        X_train, Y_train, uids_train = load_splits(X_train, Y_train, uids_train, datasets_dir, folder, "train")
+        X_val, Y_val, uids_val = load_splits(X_val, Y_val, uids_val, datasets_dir, folder, "val")
+        X_test, Y_test, uids_test = load_splits(X_test, Y_test, uids_test, datasets_dir, folder, "test")
         train_dataset = CustomAudioDataset(X_train, Y_train, uids_train)
         val_dataset = CustomAudioDataset(X_val, Y_val, uids_val)
         test_dataset = CustomAudioDataset(X, Y, uids)
@@ -139,7 +142,7 @@ def model_build( all_tags, n_mels, train_dataset, val_dataset, Skip, time_bins, 
     
     # summary(tweetynet,(1, n_mels, 86))
 
-    history, test_out, start_time, end_time, date_str = tweetynet.train_pipeline(train_dataset,val_dataset,
+    history, start_time, end_time, date_str = tweetynet.train_pipeline(train_dataset,val_dataset,
                                                                        lr=lr, batch_size=batch_size,epochs=epochs, save_me=True,
                                                                        fine_tuning=False, finetune_path=None, outdir=outdir)
     print("Training time:", end_time-start_time)
