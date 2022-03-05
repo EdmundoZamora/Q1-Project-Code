@@ -134,7 +134,7 @@ class TweetyNetModel:
 
         end_time = datetime.now()
         self.runtime = end_time - start_time
-        test_out = []
+        # test_out = []
 
         if save_me: # save to temp?
             date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -148,7 +148,7 @@ class TweetyNetModel:
 
         self.print_results(history)  # save to out, saves to wd. works
         #os.chdir(cwd)
-        return history, test_out, start_time, end_time, date_str
+        return history, start_time, end_time, date_str
 
 
 

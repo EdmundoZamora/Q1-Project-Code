@@ -107,16 +107,20 @@ def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_leng
     #endregion
     
     tags = create_pyrenote_tags(data_path, folder)
+    
     '''
     # print(tags)
     # return
     ''' 
     
     for f in true_wavs:
+
         '''
         #signal, SR = downsampled_mono_audio(signal, sample_rate, SR)
         # print(f)
         '''
+
+        print(f)
         wav = os.path.join(file_path, f)
         spc,len_audio = wav2spc(wav, fs=SR, n_mels=n_mels) # returns array for display melspec (216,72)
         time_bins = len_audio/spc.shape[1] # number of seconds in 1 time_bin
@@ -126,6 +130,7 @@ def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_leng
         features["X"].append(spc)#.extend(spc_split)#.append(spc)
         features["Y"].append(Y)#.extend(Y_split)#.append(Y)
         features["time_bins"].append(time_bins)
+
         '''
         # features["time_bins"].append(time_bins)
 

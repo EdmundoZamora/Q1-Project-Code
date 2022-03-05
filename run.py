@@ -41,7 +41,7 @@ def main(targets):
         # make the data target
         data = get_data(Skip, **data_cfg)
 
-    if 'augment' in targets:
+    if 'augment' in targets: # in progress
         if "skip" in targets:
             Skip = True
         else:

@@ -79,6 +79,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
         all_tags = [0,1]
         return all_tags, n_mels, train_dataset, val_dataset, test_dataset, HOP_LENGTH, SR
     elif dataset == "PYRE":
+        folder = 'Mixed_Bird-20220126T212121Z-003'
         X, Y, uids, time_bins = load_pyrenote_dataset(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH)
         all_tags = [0,1]
         # need
@@ -162,13 +163,13 @@ def evaluate(model,test_dataset, date_str, hop_length, sr, outdir,temporal_graph
     test_out, time_segs = tweetynet.test_load_step(test_dataset, hop_length, sr, model_weights=model_weights, window_size=window_size) 
     test_out.to_csv(os.path.join(outdir,"Evaluation_on_data.csv"))
     time_segs.to_csv(os.path.join(outdir,"Time_intervals.csv"))
-    '''
-    orig_stdout = sys.stdout
-    sys.stdout = open(os.path.join('data/out','file_score_rates.txt'), 'w')
+    
+    # orig_stdout = sys.stdout
+    # sys.stdout = open(os.path.join('data/out','file_score_rates.txt'), 'w')
     file_score(temporal_graphs)
-    sys.stdout.close()
-    sys.stdout = orig_stdout
+    # sys.stdout.close()
+    # sys.stdout = orig_stdout
     file_graph_temporal(temporal_graphs) 
     file_graph_temporal_rates(temporal_graphs)
-    '''
+    
     return print("Finished Classifcation")
