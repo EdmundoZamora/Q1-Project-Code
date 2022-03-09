@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 import torch
+from tqdm import tqdm
 
 from torch.utils.data import DataLoader
 from network import TweetyNet
@@ -179,9 +180,9 @@ class TweetyNetModel:
             correct = 0.0
             edit_distance = 0.0
 
-            # return
-            for i, data in enumerate(train_loader): # train loader is custom audiodataset, getitem, for spectrogram.
-                inputs, labels, _ = data
+            loop = tqdm(enumerate(train_loader), total=len(train_loader), leave=False)
+            for i, data in loop: # train loader is custom audiodataset, getitem, for spectrogram.
+                inputs, labels, uid = data
 
                 #should be able to do this before this step.
                 # inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
@@ -192,28 +193,27 @@ class TweetyNetModel:
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 self.optimizer.zero_grad()
                 output = self.model(inputs, inputs.shape[0], labels.shape[0])   # ones and zeros, temporal bird annotations.
-                #if self.binary:
-                #    labels = torch.from_numpy((np.array([[x] * output.shape[-1] for x in labels])))
-                # print(f"output{output.shape}")
-                # print(output.shape) # torch.Size([64, 2, 72])
-                # print(labels.shape) # torch.Size([64, 86])
+                # print(f"shape in train {output.shape}") # tutor
+                # return 
+                # print(f'argmax of output {output}')
+                # return
+                #convert output values to binary.
+                correct += (output == labels).float().sum().cpu().detach().numpy()
+                # print(correct)
+                '''# return
 
-                loss = self.criterion(output, labels)
+                # print(f'running loss type {type(running_loss)}')
+                # print(f'correct type {type(correct)}')
 
-                loss.backward()
-                self.optimizer.step()
-                scheduler.step()
-
-                # get statistics
-                running_loss += loss.item()
-                output = torch.argmax(output, dim=1)
-                correct += (output == labels).float().sum()
-                #for j in range(len(labels)):
-                #    edit_distance += syllable_edit_distance(output[j], labels[j])
+                # causing issue FLAG
+                # for j in range(len(labels)):
+                    # edit_distance += syllable_edit_distance(output[j], labels[j])'''
 
                 # print update Improve this to make it better Maybe a global counter
-                if i % 10 == 9:  # print every 10 mini-batches
-                    print('[%d, %5d] loss: %.3f' % (e + 1, i + 1, running_loss ))
+                #if i % 10 == 9:  # print every 10 mini-batches
+                #    print('[%d, %5d] loss: %.3f' % (e + 1, i + 1, running_loss ))
+                loop.set_description(f"Epoch [{e}/{epochs}]")
+                loop.set_postfix(loss = loss.item(), acc = 100*float((output == labels).float().sum())/(len(data[1]) * self.model.input_shape[-1]))
                     
             history["loss"].append(running_loss)
             history["acc"].append(100 * correct / (len(train_loader.dataset) * self.model.input_shape[-1]))
