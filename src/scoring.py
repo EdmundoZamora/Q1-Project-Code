@@ -233,13 +233,16 @@ def accuracy(row):
 
 def sensitivity(row): # Recall or True positive rate
     TP,TN,FP,FN = row['TP'],row['TN'],row['FP'],row['FN']
-    sense = (TP)/(TP+FN)
-    return sense
+    if TP == 0 or FN == 0:
+        return 0
+    else:
+        sense = (TP)/(TP+FN)
+        return sense
 
-def specificity(row): # True negative rate
-    TP,TN,FP,FN = row['TP'],row['TN'],row['FP'],row['FN']
-    specific = (TN)/(TN + FP)
-    return specific
+# def specificity(row): # True negative rate
+#     TP,TN,FP,FN = row['TP'],row['TN'],row['FP'],row['FN']
+#     specific = (TN)/(TN + FP)
+#     return specific
 
 def precision(row): # positive predictive value
     TP,TN,FP,FN = row['TP'],row['TN'],row['FP'],row['FN']
@@ -249,14 +252,14 @@ def precision(row): # positive predictive value
         prec = (TP)/(TP+FP)
         return prec
 
-def false_pos_rate(row): 
-    TP,TN,FP,FN = row['TP'],row['TN'],row['FP'],row['FN']
-    fpr = (FP)/(TN+FP)
-    return fpr
+# def false_pos_rate(row): 
+#     TP,TN,FP,FN = row['TP'],row['TN'],row['FP'],row['FN']
+#     fpr = (FP)/(TN+FP)
+#     return fpr
 
-def f1_score(row):
-    prec,rec = row['PRECISION'],row['RECALL']
-    fpr = (2*prec*rec)/float(prec+rec)
-    return fpr
+# def f1_score(row):
+#     prec,rec = row['PRECISION'],row['RECALL']
+#     fpr = (2*prec*rec)/float(prec+rec)
+#     return fpr
 
 # file_score(2)

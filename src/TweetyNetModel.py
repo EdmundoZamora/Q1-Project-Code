@@ -280,7 +280,7 @@ class TweetyNetModel:
         st_time = []
         dataiter = iter(test_loader)
         label, _, _ = dataiter.next()
-        print(label.shape)
+        # print(label.shape)
         for i in range(label.shape[-1]): # will change to be more general, does it only for one trainfile?
             st_time.append(get_time(i, hop_length, sr))
         st_time = np.array(st_time)
