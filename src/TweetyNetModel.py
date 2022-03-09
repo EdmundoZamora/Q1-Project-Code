@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 import torch
-
+from tqdm import tqdm
 from torch.utils.data import DataLoader
 from network import TweetyNet
 from EvaluationFunctions import frame_error, syllable_edit_distance
@@ -82,15 +82,15 @@ class TweetyNetModel:
         if show_plots:
             plt.show()
 
-        plt.figure(figsize=(9, 6))
-        plt.title("Edit Distance")
-        plt.plot(history["edit_distance"])
-        plt.plot(history["val_edit_distance"])
-        plt.legend(["edit_distance", "val_edit_distance"])
-        if save_plots:
-            plt.savefig('edit_distance.png')
-        if show_plots:
-            plt.show()
+        # plt.figure(figsize=(9, 6))
+        # plt.title("Edit Distance")
+        # plt.plot(history["edit_distance"])
+        # plt.plot(history["val_edit_distance"])
+        # plt.legend(["edit_distance", "val_edit_distance"])
+        # if save_plots:
+        #     plt.savefig('edit_distance.png')
+        # if show_plots:
+        #     plt.show()
 
     def reset_weights(self):
         for name, module in self.model.named_children():
@@ -165,8 +165,8 @@ class TweetyNetModel:
                    "val_loss": [],
                    "acc": [],
                    "val_acc": [],
-                   "edit_distance": [],
-                   "val_edit_distance": [],
+                #    "edit_distance": [],
+                #    "val_edit_distance": [],
                    "best_weights" : 0
                    }
         #add in early stopping criteria and saving best weights at each epoch
@@ -179,9 +179,9 @@ class TweetyNetModel:
             correct = 0.0
             edit_distance = 0.0
 
-            # return
-            for i, data in enumerate(train_loader): # train loader is custom audiodataset, getitem, for spectrogram.
-                inputs, labels, _ = data
+            loop = tqdm(enumerate(train_loader), total=len(train_loader), leave=False)
+            for i, data in loop: # train loader is custom audiodataset, getitem, for spectrogram.
+                inputs, labels, uid = data
 
                 #should be able to do this before this step.
                 # inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
@@ -212,13 +212,18 @@ class TweetyNetModel:
                 #    edit_distance += syllable_edit_distance(output[j], labels[j])
 
                 # print update Improve this to make it better Maybe a global counter
-                if i % 10 == 9:  # print every 10 mini-batches
-                    print('[%d, %5d] loss: %.3f' % (e + 1, i + 1, running_loss ))
+                # if i % 10 == 9:  # print every 10 mini-batches
+                #     print('[%d, %5d] loss: %.3f' % (e + 1, i + 1, running_loss ))
+                
+                loop.set_description(f"Epoch [{e}/{epochs}]")
+                loop.set_postfix(loss = loss.item(), acc = 100*float((output == labels).float().sum())/(len(data[1]) * self.model.input_shape[-1]))
                     
             history["loss"].append(running_loss)
             history["acc"].append(100 * correct / (len(train_loader.dataset) * self.model.input_shape[-1]))
-            print(100 * correct / (len(train_loader.dataset) * self.model.input_shape[-1]))
-            history["edit_distance"].append(edit_distance / (len(train_loader.dataset) * self.model.input_shape[-1]))
+            # print(100 * correct / (len(train_loader.dataset) * self.model.input_shape[-1]))
+            # history["edit_distance"].append(edit_distance / (len(train_loader.dataset) * self.model.input_shape[-1]))
+            print("Running Accuracy: ", 100 * float(correct / (len(train_loader.dataset) * self.model.input_shape[-1])))
+            print("Running Loss: ", running_loss)
             if val_loader != None:
                 self.validation_step(val_loader, history)
         print('Finished Training')
@@ -258,7 +263,9 @@ class TweetyNetModel:
                 #    val_edit_distance += syllable_edit_distance(output[j], labels[j])
             history["val_loss"].append(val_loss)
             history["val_acc"].append(100 * val_correct / (len(val_loader.dataset) * self.model.input_shape[-1]))
-            history["val_edit_distance"].append(val_edit_distance / (len(val_loader.dataset) * self.model.input_shape[-1]))
+            # history["val_edit_distance"].append(val_edit_distance / (len(val_loader.dataset) * self.model.input_shape[-1]))
+            print("Running Validation Accuracy: ", 100 * float(val_correct / (len(val_loader.dataset) * self.model.input_shape[-1])))
+            print("Running Validation Loss: ", val_loss)
             
             if history["val_acc"][-1] > history["best_weights"]:
                 torch.save(self.model.state_dict(), "best_model_weights.h5")

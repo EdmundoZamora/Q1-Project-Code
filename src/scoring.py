@@ -222,14 +222,20 @@ def file_score(num_files):
 
 def error_rate(row):
     TP,TN,FP,FN = row['TP'],row['TN'],row['FP'],row['FN']
-    error = (FP + FN)/(TP + TN + FN + FP)
-    return error
+    if (TP == 0 or TN == 0) or (FN == 0 or FP == 0) :
+        return 0
+    else:
+        error = (FP + FN)/(TP + TN + FN + FP)
+        return error
 
 def accuracy(row):
     TP,TN,FP,FN = row['TP'],row['TN'],row['FP'],row['FN']
     # return (TP,TN,FP,FN)
-    accura = (TP + TN)/(TP + TN + FN + FP) 
-    return accura
+    if (TP == 0 or TN == 0) or (FN == 0 or FP == 0) :
+        return 0
+    else:
+        accura = (TP + TN)/(TP + TN + FN + FP) 
+        return accura
 
 def sensitivity(row): # Recall or True positive rate
     TP,TN,FP,FN = row['TP'],row['TN'],row['FP'],row['FN']
@@ -239,10 +245,13 @@ def sensitivity(row): # Recall or True positive rate
         sense = (TP)/(TP+FN)
         return sense
 
-# def specificity(row): # True negative rate
-#     TP,TN,FP,FN = row['TP'],row['TN'],row['FP'],row['FN']
-#     specific = (TN)/(TN + FP)
-#     return specific
+def specificity(row): # True negative rate
+    TP,TN,FP,FN = row['TP'],row['TN'],row['FP'],row['FN']
+    if TN == 0 or FP == 0:
+        return 0
+    else:
+        specific = (TN)/(TN + FP)
+        return specific
 
 def precision(row): # positive predictive value
     TP,TN,FP,FN = row['TP'],row['TN'],row['FP'],row['FN']
@@ -252,14 +261,20 @@ def precision(row): # positive predictive value
         prec = (TP)/(TP+FP)
         return prec
 
-# def false_pos_rate(row): 
-#     TP,TN,FP,FN = row['TP'],row['TN'],row['FP'],row['FN']
-#     fpr = (FP)/(TN+FP)
-#     return fpr
+def false_pos_rate(row): 
+    TP,TN,FP,FN = row['TP'],row['TN'],row['FP'],row['FN']
+    if TN == 0 or FP == 0:
+        return 0
+    else:
+        fpr = (FP)/(TN+FP)
+        return fpr
 
-# def f1_score(row):
-#     prec,rec = row['PRECISION'],row['RECALL']
-#     fpr = (2*prec*rec)/float(prec+rec)
-#     return fpr
+def f1_score(row):
+    prec,rec = row['PRECISION'],row['RECALL']
+    if prec == 0 or rec == 0:
+        return 0
+    else:
+        fpr = (2*prec*rec)/float(prec+rec)
+        return fpr
 
 # file_score(2)

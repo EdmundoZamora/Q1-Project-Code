@@ -2,6 +2,7 @@ import os
 import sys
 import csv
 import math
+import shutil
 import pickle
 from collections import Counter
 from datetime import datetime
@@ -108,6 +109,13 @@ def model_build( all_tags, n_mels, train_dataset, val_dataset, Skip, time_bins, 
     #    pass
     
     #device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    if Skip:
+        for f in os.listdir(outdir):
+            shutil.rmtree(os.path.join(outdir, f),ignore_errors=True)
+        for f in os.listdir(outdir):
+            os.remove(os.path.join(outdir, f))
+    else:   
+        pass
 
     cwd = os.getcwd() 
     os.chdir(outdir)
