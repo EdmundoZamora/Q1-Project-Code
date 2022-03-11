@@ -181,7 +181,7 @@ class TweetyNetModel:
 
             loop = tqdm(enumerate(train_loader), total=len(train_loader), leave=False)
             for i, data in loop: # train loader is custom audiodataset, getitem, for spectrogram.
-                inputs, labels, uid = data
+                inputs, labels, _ = data
 
                 #should be able to do this before this step.
                 # inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1], inputs.shape[2])
@@ -199,21 +199,16 @@ class TweetyNetModel:
                 # print(labels.shape) # torch.Size([64, 86])
 
                 loss = self.criterion(output, labels)
-
                 loss.backward()
+
                 self.optimizer.step()
                 scheduler.step()
 
                 # get statistics
                 running_loss += loss.item()
                 output = torch.argmax(output, dim=1)
-                correct += (output == labels).float().sum()
-                #for j in range(len(labels)):
-                #    edit_distance += syllable_edit_distance(output[j], labels[j])
 
-                # print update Improve this to make it better Maybe a global counter
-                # if i % 10 == 9:  # print every 10 mini-batches
-                #     print('[%d, %5d] loss: %.3f' % (e + 1, i + 1, running_loss ))
+                correct += (output == labels).float().sum()
                 
                 loop.set_description(f"Epoch [{e}/{epochs}]")
                 loop.set_postfix(loss = loss.item(), acc = 100*float((output == labels).float().sum())/(len(data[1]) * self.model.input_shape[-1]))

@@ -118,7 +118,7 @@ def file_score(num_files):
         try:
             # real = pd.read_csv(os.path.join("data/raw/NIPS4B_BIRD_CHALLENGE_TRAIN_TEST_WAV/temporal_annotations_nips4b",morfi))
             # print(tabulate(real, headers='keys', tablefmt='psql'))
-            file_filt.to_csv(os.path.join("data/out/separate_evaluations","nips4b_birds_classificationfile"+curr_file[-7:-4]+".csv"))
+            file_filt.to_csv(os.path.join("data/out/separate_evaluations","classificationfile_"+curr_file[:-4]+".csv"))
             # acc_score = file_filt['Acc'].to_list()
 
             # print('\n')
@@ -161,10 +161,10 @@ def file_score(num_files):
     frame['ERROR_RATE'] = frame.apply (lambda row: error_rate(row), axis=1)
     frame['ACCURACY'] = frame.apply (lambda row: accuracy(row), axis=1)
     frame['PRECISION'] = frame.apply (lambda row: precision(row), axis=1)
-    # frame['RECALL'] = frame.apply (lambda row: sensitivity(row), axis=1)
-    # frame['TRUE_NEGATIVE_RATE'] = frame.apply (lambda row: specificity(row), axis=1)
-    # frame['FALSE_POSITIVE_RATE'] = frame.apply (lambda row: false_pos_rate(row), axis=1)
-    # frame['F1_SCORE'] = frame.apply (lambda row: false_pos_rate(row), axis=1)
+    frame['RECALL'] = frame.apply (lambda row: sensitivity(row), axis=1)
+    frame['TRUE_NEGATIVE_RATE'] = frame.apply (lambda row: specificity(row), axis=1)
+    frame['FALSE_POSITIVE_RATE'] = frame.apply (lambda row: false_pos_rate(row), axis=1)
+    frame['F1_SCORE'] = frame.apply (lambda row: false_pos_rate(row), axis=1)
     
     frame.to_csv(os.path.join("data/out","Concluding_model_metrics.csv"))
 #region
@@ -277,4 +277,4 @@ def f1_score(row):
         fpr = (2*prec*rec)/float(prec+rec)
         return fpr
 
-# file_score(2)
+# file_score(10)

@@ -44,7 +44,7 @@ from Load_data_functions import load_dataset, load_pyrenote_dataset, load_pyreno
 # "found": {"Plasab_song": 0, "Unknown": 0, "Tibtom_song": 0, "Lyrple_song": 0, "Plaaff_song": 0, "Pelgra_call": 0, "Cicatr_song": 0, "Cicorn_song": 0, "Tetpyg_song": 0, "Ptehey_song": 0}
 '''
 
-#WIP
+
 def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, nonBird_labels, found, window_size, dataset):
     train = True
     fineTuning = False
@@ -54,6 +54,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     # load_data_set returns variables which get fed into model builder 
     if dataset == "NIPS":
         folder = 'train'
+
         X, Y, uids = load_dataset(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, nonBird_labels, found, use_dump=True)
         #print(f'X shape {X.shape}') #number of birds, rows of each data column of each data.
         #print(f'len of X {len(X)}')
@@ -69,16 +70,20 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
         #spec = librosa.display.specshow(bird1, hop_length = HOP_LENGTH,sr = SR, y_axis='mel', x_axis='time') # displays rotated
         #print(spec)
         #plt.show()
+
         X_train, X_val, Y_train, Y_val, uids_train, uids_val = train_test_split(X, Y, uids, test_size=.3)
         X_val, X_test, Y_val, Y_test, uids_val, uids_test = train_test_split(X_val, Y_val, uids_val, test_size=.66)
+
         X_train, Y_train, uids_train = load_splits(X_train, Y_train, uids_train, datasets_dir, folder, "train")
         X_val, Y_val, uids_val = load_splits(X_val, Y_val, uids_val, datasets_dir, folder, "val")
         X_test, Y_test, uids_test = load_splits(X_test, Y_test, uids_test, datasets_dir, folder, "test")
+        
         train_dataset = CustomAudioDataset(X_train, Y_train, uids_train)
         val_dataset = CustomAudioDataset(X_val, Y_val, uids_val)
         test_dataset = CustomAudioDataset(X, Y, uids)
         all_tags = [0,1]
         return all_tags, n_mels, train_dataset, val_dataset, test_dataset, HOP_LENGTH, SR
+
     elif dataset == "PYRE":
         folder = 'Mixed_Bird-20220126T212121Z-003'
         X, Y, uids, time_bins = load_pyrenote_dataset(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH)
@@ -97,6 +102,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
         val_dataset = CustomAudioDataset(X_val, Y_val, uids_val)
         test_dataset = CustomAudioDataset(X_test, Y_test, uids_test)
         return all_tags, n_mels, train_dataset, val_dataset, test_dataset, HOP_LENGTH, SR
+
     return None
 
 
