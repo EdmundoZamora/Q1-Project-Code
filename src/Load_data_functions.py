@@ -434,3 +434,138 @@ def load_splits(spcs, ys, uids, data_path, folder, set_type, use_dump=True):
     uid = uid.reshape(uid.shape[1])
     print(X.shape, Y.shape, uid.shape)
     return X, Y, uid
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Refactored code for kaleidoscope format
+##
+
+
+##########
+### This portion is just to load in a dataset/file and apply the necessary functions to line up annotations on the spectrogram. no windowing yet
+
+
+#def new_create_tags(data_path, folder):
+#    csv = new_find_tags(data_path, folder)
+#    tags = csv["MANUAL ID"]
+#    tag = [] 
+#    for t in tags:
+#        tag.append(t)
+#    tag = set(tag)
+#    tags = {}
+#    for i, t in enumerate(sorted(tag)):
+#        tags[t] = i + 1
+#    return tags 
+
+def new_calc_Y(sr, spc, annotation, frame_size, hop_length):
+    y = [0] * spc.shape[1] # array of zeros
+    for i in range(len(annotation)):
+        start = get_frames(annotation.loc[i, "OFFSET"] * sr, frame_size, hop_length)
+        end = get_frames((annotation.loc[i, "OFFSET"] + annotation.loc[i, "DURATION"]) * sr, frame_size, hop_length)
+        for j in range(math.floor(start), math.floor(end)): #CORRECT WAY TO ADD TRUE LABELS?
+            y[j] = 1 
+    return y
+
+def new_compute_Y(wav, f, spc, df, SR, frame_size, hop_length):
+    #df = new_find_tags(data_path, SR, csv_file)
+    wav_notes = df[df['IN FILE'] == f ]
+    if os.path.isfile(wav):
+        #_, sr = librosa.load(wav, sr=SR)
+        annotation = wav_notes[['OFFSET','DURATION','MANUAL ID']].reset_index(drop = True)
+        y = new_calc_Y(SR, spc, annotation, frame_size, hop_length)
+        return np.array(y)
+    else:
+        print("file does not exist: ", f)
+    return [0] * spc.shape[1]
+
+#tags must contain ['OFFSET','DURATION','MANUAL ID'] as headers. may want to abstract this? will take a look at dataset to make this work.
+def new_find_tags(data_path, SR, csv_file):
+    Pyre = pd.read_csv(os.path.join(data_path, csv_file), index_col=False, usecols=["IN FILE", "OFFSET", "DURATION", "MANUAL ID","SAMPLE RATE"])
+    Pyre = Pyre[Pyre["SAMPLE RATE"] == SR]
+    return Pyre
+
+def new_compute_feature(data_path, folder, csv_file, SR, n_mels, frame_size, hop_length):
+    print(f"Compute features for dataset {os.path.basename(data_path)}")  
+    features = {"uids": [], "X": [], "Y": [], "time_bins": []}
+    df = new_find_tags(data_path, SR, csv_file) # means we will have data in kaleidoscope format that would work across the whole dataset.
+    valid_filenames = df["IN FILE"].drop_duplicates().values.tolist() 
+    file_path = os.path.join(data_path) #need to make it work with parameters, no hard coding.
+    filenames = os.listdir(file_path)
+    true_wavs = [i for i in filenames if i in valid_filenames]
+    #tags = new_create_tags(data_path, folder)
+    for f in true_wavs:
+        wav = os.path.join(file_path, f)
+        spc,len_audio = wav2spc(wav, fs=SR, n_mels=n_mels)
+        time_bins = len_audio/spc.shape[1]
+        Y = new_compute_Y(wav,f, spc, df, data_path, folder, SR, frame_size, hop_length)
+        features["uids"].append(f)
+        features["X"].append(spc)
+        features["Y"].append(Y)
+        features["time_bins"].append(time_bins)
+    return features
+
+def new_load_dataset(data_path, folder, csv_file, SR, n_mels, frame_size, hop_length, use_dump=True):
+    mel_dump_file = os.path.join(data_path, "downsampled_{}_bin_mel_dataset.pkl".format(folder))
+    print(mel_dump_file)
+    print(os.path.exists(mel_dump_file))
+    if os.path.exists(mel_dump_file) and use_dump:
+        with open(mel_dump_file, "rb") as f:
+            dataset = pickle.load(f)
+    else:
+        dataset = new_compute_feature(data_path, folder, csv_file, SR, n_mels, frame_size, hop_length)
+        with open(mel_dump_file, "wb") as f:
+            pickle.dump(dataset, f)
+    X = dataset['X']
+    Y = dataset['Y']
+    uids = dataset['uids']
+    time_bins = dataset['time_bins']
+    return X, Y, uids, time_bins
+
+def new_load_and_window_dataset(data_path, folder, csv_file, SR, n_mels, frame_size, hop_length, windowsize):
+    x, y, uids, time_bins = new_load_dataset(data_path, folder, csv_file, SR, n_mels, frame_size, hop_length)
+    dataset = window_data(x, y, uids, time_bins, windowsize)
+    X = dataset['X']
+    Y = dataset['Y']
+    UIDS = dataset['uids']
+    return X, Y, UIDS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   
+def load_wav_and_annotations(data_path, SR, n_mels, frame_size, hop_length, found, use_dump=True):
+    dataset = compute_feature(data_path, SR, n_mels, frame_size, hop_length, found)
+    inds = [i for i, x in enumerate(dataset["X"]) if x.shape[1] == 216]
+    X = np.array([(dataset["X"][i]) for i in inds]).astype(np.float32)/255
+    X = X.reshape(X.shape[0], 1, X.shape[1], X.shape[2])
+    Y = np.array([dataset["Y"][i] for i in inds]).astype(np.longlong)
+    uids = np.array([dataset["uids"][i] for i in inds])
+    return X, Y, uids
+
+
+## End portion
+##############
+
+#add windowing and make it generic
