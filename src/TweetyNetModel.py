@@ -220,7 +220,7 @@ class TweetyNetModel:
             history["acc"].append(100 * correct / (len(train_loader.dataset) * self.model.input_shape[-1]))
             print("Running Accuracy: ", 100 * float(correct / (len(train_loader.dataset) * self.model.input_shape[-1])))
             print("Running Loss: ", running_loss)
-            history["edit_distance"].append(edit_distance / (len(train_loader.dataset) * self.model.input_shape[-1]))
+            #history["edit_distance"].append(edit_distance / (len(train_loader.dataset) * self.model.input_shape[-1]))
             if val_loader != None:
                 self.validation_step(val_loader, history)
         print('Finished Training')
@@ -260,7 +260,7 @@ class TweetyNetModel:
                 #    val_edit_distance += syllable_edit_distance(output[j], labels[j])
             history["val_loss"].append(val_loss)
             history["val_acc"].append(100 * val_correct / (len(val_loader.dataset) * self.model.input_shape[-1]))
-            history["val_edit_distance"].append(val_edit_distance / (len(val_loader.dataset) * self.model.input_shape[-1]))
+            # history["val_edit_distance"].append(val_edit_distance / (len(val_loader.dataset) * self.model.input_shape[-1]))
             print("Running Validation Accuracy: ", 100 * float(val_correct / (len(val_loader.dataset) * self.model.input_shape[-1])))
             print("Running Validation Loss: ", val_loss)
             if history["val_acc"][-1] > history["best_weights"]:
