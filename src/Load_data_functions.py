@@ -499,7 +499,7 @@ def new_compute_feature(data_path, folder, csv_file, SR, n_mels, frame_size, hop
     features = {"uids": [], "X": [], "Y": [], "time_bins": []}
     df = new_find_tags(data_path, SR, csv_file) # means we will have data in kaleidoscope format that would work across the whole dataset.
     valid_filenames = df["IN FILE"].drop_duplicates().values.tolist() 
-    file_path = os.path.join(data_path) #need to make it work with parameters, no hard coding.
+    file_path = os.path.join(data_path, folder) #need to make it work with parameters, no hard coding.
     filenames = os.listdir(file_path)
     true_wavs = [i for i in filenames if i in valid_filenames]
     #tags = new_create_tags(data_path, folder)
@@ -507,7 +507,7 @@ def new_compute_feature(data_path, folder, csv_file, SR, n_mels, frame_size, hop
         wav = os.path.join(file_path, f)
         spc,len_audio = wav2spc(wav, fs=SR, n_mels=n_mels)
         time_bins = len_audio/spc.shape[1]
-        Y = new_compute_Y(wav,f, spc, df, data_path, folder, SR, frame_size, hop_length)
+        Y = new_compute_Y(wav,f, spc, df, SR, frame_size, hop_length)
         features["uids"].append(f)
         features["X"].append(spc)
         features["Y"].append(Y)
@@ -515,7 +515,7 @@ def new_compute_feature(data_path, folder, csv_file, SR, n_mels, frame_size, hop
     return features
 
 def new_load_dataset(data_path, folder, csv_file, SR, n_mels, frame_size, hop_length, use_dump=True):
-    mel_dump_file = os.path.join(data_path, "downsampled_{}_bin_mel_dataset.pkl".format(folder))
+    mel_dump_file = os.path.join(data_path, "downsampled_bin_mel_dataset.pkl")
     print(mel_dump_file)
     print(os.path.exists(mel_dump_file))
     if os.path.exists(mel_dump_file) and use_dump:
@@ -532,7 +532,7 @@ def new_load_dataset(data_path, folder, csv_file, SR, n_mels, frame_size, hop_le
     return X, Y, uids, time_bins
 
 def new_load_and_window_dataset(data_path, folder, csv_file, SR, n_mels, frame_size, hop_length, windowsize):
-    x, y, uids, time_bins = new_load_dataset(data_path, folder, csv_file, SR, n_mels, frame_size, hop_length)
+    x, y, uids, time_bins = new_load_dataset(data_path, folder, csv_file, SR, n_mels, frame_size, hop_length, use_dump=True)
     dataset = window_data(x, y, uids, time_bins, windowsize)
     X = dataset['X']
     Y = dataset['Y']
