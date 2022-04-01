@@ -16,8 +16,12 @@ import env_setup
 from etl import get_data
 from NIPS_training import apply_features, model_build, evaluate
 from Audio_Data_Augmentation import create_augmentation
-from Load_data_functions import new_load_and_window_dataset
+from Load_data_functions import new_load_and_window_dataset, load_wav
 from Visualizations import basic_visualization
+from CustomAudioDataset import CustomAudioDataset
+from TweetyNetModel import TweetyNetModel
+import torch
+from Evaluation import evaluate_a_wav
 
 def main(targets):
     '''
@@ -30,6 +34,15 @@ def main(targets):
     including skip in the targets skips the data downloading step.
     `main` runs the targets in order of data=>features=>model=>classifications.
     '''
+    data_folder = os.path.join('data',"PYRE", "Mixed_Bird-20220126T212121Z-003", "Mixed_Bird")
+    csv_path = os.path.join('data', 'PYRE', 'for_data_science_newline_fixed.csv')
+    model_weights_path = os.path.join("data", "out", "model_weights-20220325_145032.h5")
+    files = os.listdir(data_folder)
+    for f in files:
+        data_path = os.path.join(data_folder, f)
+        local_scores, predictions = evaluate_a_wav(data_path, csv_path, model_weights_path)
+        predictions.to_csv(os.path.join("test_out", f"{f}test_predictions.csv"))
+    return None
     data_path = data = os.path.join('data',"PYRE")
     folder = os.path.join('Mixed_Bird-20220126T212121Z-003', 'Mixed_Bird')
     csv_file = 'for_data_science_newline_fixed.csv'
