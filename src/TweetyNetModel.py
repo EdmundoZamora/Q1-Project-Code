@@ -380,24 +380,46 @@ class TweetyNetModel:
         test_out = self.test_a_file(test_data_loader)
         return test_out
 
-    def test_a_file(self, test_loader):
+    def test_a_file(self, test_dataset, model_weights=None, norm=False, batch_size=1, window_size=1):
+        if model_weights != None:
+            self.model.load_state_dict(torch.load(model_weights))
+            
+        test_data_loader = DataLoader(test_dataset, batch_size=batch_size)
         predictions = pd.DataFrame()
         self.model.eval()
+        local_score = []
+        print(len(test_dataset))
         with torch.no_grad():
-            for i, data in enumerate(test_loader):
+            for i, data in enumerate(test_data_loader):
                 inputs, labels, uids = data
-                print(inputs)
-                print(labels)
-                print(uids)
-                inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[0], inputs.shape[1])
+                #inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[0], inputs.shape[1])
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
-
                 output = self.model(inputs, inputs.shape[0], inputs.shape[0])
+                local_score.extend([x for x in output[0, 1, :]])
+                #add option to normalize
+                #be able to create df if interested
                 pred = torch.argmax(output, dim=1)
-                d = {"uid": uids, "pred": pred.flatten(), "label": labels.flatten()}
+                pred = pred.reshape(pred.shape[1])
+                labels = labels.reshape(labels.shape[1])
+
+                #print(uids.shape, pred.shape, labels.shape)
+                d = {"uid": uids[0], "pred": pred, "label": labels}
                 new_preds = pd.DataFrame(d)
                 predictions = predictions.append(new_preds)
-        return predictions
+        local_score = np.array(local_score)
+        if norm:
+            local_score = normalize(local_score, 0, 1)
+        predictions["local_score"] = local_score
+        return predictions, local_score
+
+def normalize(arr, t_min, t_max):
+    norm_arr = []
+    diff = t_max - t_min
+    diff_arr = max(arr) - min(arr)
+    for i in arr:
+        temp = (((i - min(arr))*diff)/diff_arr) + t_min
+        norm_arr.append(temp)
+    return norm_arr
 
 def increase_uid(row,i):
     species = row['uid']

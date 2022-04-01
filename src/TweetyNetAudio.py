@@ -187,7 +187,7 @@ def wav2spc(wav_file, fs=44100, n_mels=40, n_fft=2048, hop_len=1024, duration=No
     """
 
     x_fs, x = load_wav(wav_file)
-    if x_fs != fs:
+    if x_fs != fs and not downsample:
         raise ValueError(f"wav file with wrong frequency {x_fs}: {wav_file}")
     if downsample:
         x_fs, x = downsampled_mono_audio(x, x_fs, n_fs)

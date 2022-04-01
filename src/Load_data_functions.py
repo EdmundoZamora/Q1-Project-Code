@@ -264,8 +264,8 @@ def window_data(spcs, ys, uids, time_bins, windowsize):
 def window_spectrograms(spc, Y, uid, time_bin, windowsize):
     computed = windowsize//time_bin #verify, big assumption. are time bins consistant?
     # print(computed*(Y.shape[0]//computed))
-    time_axis = int(computed*(Y.shape[0]//computed))
-    freq_axis = int(Y.shape[0]//computed) # 31, 2, 19
+    time_axis = int(computed*(spc.shape[1]//computed))
+    freq_axis = int(spc.shape[1]//computed) # 31, 2, 19
     spc_split = np.split(spc[:,:time_axis],freq_axis,axis = 1)
     Y_split = np.split(Y[:time_axis],freq_axis)
     uid_split = [str(i) + "_" + uid for i in range(freq_axis)]
@@ -554,15 +554,47 @@ def new_load_and_window_dataset(data_path, folder, csv_file, SR, n_mels, frame_s
 
 
 
+
+def create_spec(data_path, csv_path, SR, n_mels, frame_size, hop_length):
+    print(f"Compute features for {os.path.basename(data_path)}")  
+    features = {"uids": [], "X": [], "Y": [], "time_bins": []}
+    wav = os.path.join(data_path)
+    spc,len_audio = wav2spc(wav, fs=SR, n_mels=n_mels, downsample=True)
+    time_bins = len_audio/spc.shape[1]
+    df = pd.read_csv(csv_path, index_col=False, usecols=["IN FILE", "OFFSET", "DURATION", "MANUAL ID","SAMPLE RATE"])
+    df = df[df["SAMPLE RATE"] == SR]
+    f = os.path.basename(data_path)
+    print(f)
+    Y = new_compute_Y(wav, f, spc, df, SR, frame_size, hop_length)
+    features["uids"].append(data_path)
+    features["X"].append(spc)
+    features["Y"].append(Y)
+    features["time_bins"].append(time_bins)
+    return features
+
+def new_load_file(data_path, csv_path, SR, n_mels, frame_size, hop_length):
+    dataset = create_spec(data_path, csv_path, SR, n_mels, frame_size, hop_length)
+    X = dataset['X']
+    Y = dataset['Y']
+    uids = dataset['uids']
+    time_bins = dataset['time_bins']
+    return X, Y, uids, time_bins
+
+
    
-def load_wav_and_annotations(data_path, SR, n_mels, frame_size, hop_length, found, use_dump=True):
-    dataset = compute_feature(data_path, SR, n_mels, frame_size, hop_length, found)
-    inds = [i for i, x in enumerate(dataset["X"]) if x.shape[1] == 216]
-    X = np.array([(dataset["X"][i]) for i in inds]).astype(np.float32)/255
+def load_wav(data_path, csv_path, SR=44100, n_mels=86, frame_size=2048, hop_length=1024, windowsize=1):
+    x, y, uids, time_bins = new_load_file(data_path, csv_path, SR, n_mels, frame_size, hop_length)
+    dataset = window_data(x, y, uids, time_bins, windowsize)
+    X = np.array(dataset['X'])
+    print(X.shape)
     X = X.reshape(X.shape[0], 1, X.shape[1], X.shape[2])
-    Y = np.array([dataset["Y"][i] for i in inds]).astype(np.longlong)
-    uids = np.array([dataset["uids"][i] for i in inds])
-    return X, Y, uids
+    print(X.shape)
+
+    Y = np.array([dataset["Y"]])#.astype(np.longlong)
+    Y = Y.reshape(Y.shape[1], Y.shape[2])
+    UIDS = np.array([dataset["uids"]])
+    UIDS = UIDS.reshape(UIDS.shape[1])
+    return X, Y, UIDS
 
 
 ## End portion
