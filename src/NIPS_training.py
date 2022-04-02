@@ -98,7 +98,7 @@ def apply_features(datasets_dir, folder, SR, n_mels, FRAME_SIZE, HOP_LENGTH, non
     return None
 
 
-def model_build( all_tags, n_mels, train_dataset, val_dataset, Skip, time_bins, lr, batch_size, epochs, outdir, ):
+def model_build(all_tags, n_mels, train_dataset, val_dataset, Skip, time_bins, lr, batch_size, epochs, outdir, ):
     
     #if Skip:
     #    for f in os.listdir(outdir):

@@ -27,5 +27,4 @@ def evaluate_a_wav(data_path, csv_path, model_weights_path):
     predictions, local_scores = tweetynet.test_a_file(test_dataset, model_weights=model_weights_path, norm=True, batch_size=1, window_size=1)
     print(min(local_scores))
     print(max(local_scores))
-    predictions.to_csv("test_predictions.csv")
     return local_scores, predictions
