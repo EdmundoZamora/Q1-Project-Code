@@ -107,16 +107,20 @@ def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_leng
     #endregion
     
     tags = create_pyrenote_tags(data_path, folder)
+    
     '''
     # print(tags)
     # return
     ''' 
     
     for f in true_wavs:
+
         '''
         #signal, SR = downsampled_mono_audio(signal, sample_rate, SR)
         # print(f)
         '''
+
+        print(f)
         wav = os.path.join(file_path, f)
         spc,len_audio = wav2spc(wav, fs=SR, n_mels=n_mels) # returns array for display melspec (216,72)
         time_bins = len_audio/spc.shape[1] # number of seconds in 1 time_bin
@@ -126,6 +130,7 @@ def compute_pyrenote_feature(data_path, folder, SR, n_mels, frame_size, hop_leng
         features["X"].append(spc)#.extend(spc_split)#.append(spc)
         features["Y"].append(Y)#.extend(Y_split)#.append(Y)
         features["time_bins"].append(time_bins)
+
         '''
         # features["time_bins"].append(time_bins)
 
@@ -308,7 +313,7 @@ def create_tags(data_path, folder):
 def compute_feature(data_path, folder, SR, n_mels, frame_size, hop_length, nonBird_labels, found):
     print(f"Compute features for dataset {os.path.basename(data_path)}")
     
-    features = {"uids": [], "X": [], "Y": []}
+    features = {"uids": [], "X": [], "Y": []}  #, "time_bins": []
     
     filenames = os.listdir(os.path.join(data_path, folder))
     
@@ -320,13 +325,14 @@ def compute_feature(data_path, folder, SR, n_mels, frame_size, hop_length, nonBi
     
     for f in filenames:
 		#signal, SR = downsampled_mono_audio(signal, sample_rate, SR)
-        spc,len_audio = wav2spc(os.path.join(data_path, folder, f), fs=SR, n_mels=n_mels) # 72 lists in a list,should be converted to tensors
+        spc, len_audio = wav2spc(os.path.join(data_path, folder, f), fs=SR, n_mels=n_mels) # 72 lists in a list,should be converted to tensors
         # return
         # spec = librosa.display.specshow(spc,sr = SR, hop_length = hop_length, y_axis='mel', x_axis='time')
         # print(spec)
         # plt.show()
         # return
         # print(type(spc))
+        # time_bins = len_audio/spc.shape[1]
         Y = compute_Y(f, spc, tags, data_path, folder, SR, frame_size, hop_length, nonBird_labels, found) #should also be converted to tensors
         # # print(len(Y))
         # # print(Y)
@@ -334,6 +340,7 @@ def compute_feature(data_path, folder, SR, n_mels, frame_size, hop_length, nonBi
         features["uids"].append("0_"+f) # file id
         features["X"].append(spc) # array for spec len 425
         features["Y"].append(Y) # true labels
+        # features["time_bins"].append(time_bins)
         # print(features)
         # return
     return features
@@ -407,7 +414,7 @@ def load_dataset(data_path, folder, SR, n_mels, frame_size, hop_length, nonBird_
         with open(mel_dump_file, "wb") as f:
             pickle.dump(dataset, f)
 
-    #this section here has me confused, rotates the spectrograms, microfaune implementation.
+    
     inds = [i for i, x in enumerate(dataset["X"]) if x.shape[1] == 216]
     # X = np.array([dataset["X"][i].transpose() for i in inds]).astype(np.float32)/255
     X = np.array([(dataset["X"][i]) for i in inds]).astype(np.float32)/255
@@ -415,6 +422,11 @@ def load_dataset(data_path, folder, SR, n_mels, frame_size, hop_length, nonBird_
     Y = np.array([dataset["Y"][i] for i in inds]).astype(np.longlong)
     uids = np.array([dataset["uids"][i] for i in inds])
     return X, Y, uids
+    # X = dataset['X']
+    # Y = dataset['Y']
+    # uids = dataset['uids']
+    # # time_bins = dataset['time_bins']
+    # return X, Y, uids
 
 def load_splits(spcs, ys, uids, data_path, folder, set_type, use_dump=True):
     mel_dump_file = os.path.join(data_path, "downsampled_{}_bin_mel_{}.pkl".format(folder, set_type))
@@ -432,5 +444,5 @@ def load_splits(spcs, ys, uids, data_path, folder, set_type, use_dump=True):
     Y = Y.reshape(Y.shape[1], Y.shape[2])
     uid = np.array([dataset["uids"]])
     uid = uid.reshape(uid.shape[1])
-    print(X.shape, Y.shape, uid.shape)
+    # print(X.shape, Y.shape, uid.shape)
     return X, Y, uid
