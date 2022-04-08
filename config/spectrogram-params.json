@@ -3,5 +3,5 @@
     "n_mels": 86, 
     "frame_size": 2048, 
     "hop_length": 1024, 
-    "windowsize": 2
+    "windowsize": 1
 }
