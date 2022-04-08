@@ -1,13 +1,13 @@
 import pandas as pd
 import numpy as np
-from Load_data_functions import new_load_and_window_dataset, load_wav
-from Visualizations import basic_visualization
-from CustomAudioDataset import CustomAudioDataset
-from TweetyNetModel import TweetyNetModel
+from src.Load_data_functions import new_load_and_window_dataset, load_wav_and_annotations
+from src.Visualizations import basic_visualization
+from src.CustomAudioDataset import CustomAudioDataset
+from src.TweetyNetModel import TweetyNetModel
 import torch
 
-def evaluate_a_wav(data_path, csv_path, model_weights_path):
-    X, Y, uids = load_wav(data_path, csv_path, SR=44100, n_mels=86, frame_size=2048, hop_length=1024, windowsize=1)
+def evaluate_a_wav(data_path, csv_path, model_weights_path, norm=True):
+    X, Y, uids = load_wav_and_annotations(data_path, csv_path, SR=44100, n_mels=86, frame_size=2048, hop_length=1024, windowsize=1)
     print(len(X))
     print(len(Y))
     print(len(uids))
@@ -24,7 +24,7 @@ def evaluate_a_wav(data_path, csv_path, model_weights_path):
     print(f"Using {name} ")# torch.cuda.get_device_name(0)
     print(f"Using {device} ")# torch.cuda.get_device_name(0)
     tweetynet = TweetyNetModel(2, (1, 86, 43), 43, device, binary = False)
-    predictions, local_scores = tweetynet.test_a_file(test_dataset, model_weights=model_weights_path, norm=True, batch_size=1, window_size=1)
+    predictions, local_scores = tweetynet.test_a_file(test_dataset, model_weights=model_weights_path, norm=norm, batch_size=1, window_size=1)
     print(min(local_scores))
     print(max(local_scores))
     return local_scores, predictions

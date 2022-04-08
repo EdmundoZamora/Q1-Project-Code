@@ -12,7 +12,7 @@ from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
 import torch
 # from torchsummary import summary
 
-from TweetyNetAudio import wav2spc, create_spec, load_wav
+from src.TweetyNetAudio import wav2spc, create_spec, load_wav
 import random
 import librosa
 

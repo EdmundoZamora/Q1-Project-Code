@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 import librosa
 from matplotlib import pyplot as plt
-from pyha_visualization import local_line_graph
-from TweetyNetAudio import load_wav
+from src.pyha_visualization import local_line_graph
+from src.TweetyNetAudio import load_wav
 import pandas as pd
 import numpy as np
 import os
@@ -20,12 +20,13 @@ def basic_visualization(X, SR, n_mels, frame_size, hop_length, windowsize):
 
 #make sure annotations line up
 def pyha_visualization(local_scores, wav_path, csv_path):
-    SR, signal = load_wav(data_path)
+    SR, signal = load_wav(wav_path)
+    print(SR, signal.shape)
     filename = os.path.basename(wav_path)
     ## do this step before to work with    
     #SR, signal, Wav_path = get_wav(filepath)
-    automated_df = pd.DataFrame()
-    premade_annotations_df = None # get_premade_annotations(filename, csv, dataset_type)
+    automated_df = new_get_premade_annotations(filename, csv_path)
+    premade_annotations_df = new_get_premade_annotations(filename, csv_path) # get_premade_annotations(filename, csv, dataset_type)
                             #should just load it fresh from the dataset
                             #make this only compatible with full audio.
     premade_annotations_label = "Bird"
@@ -35,6 +36,9 @@ def pyha_visualization(local_scores, wav_path, csv_path):
     log_scale = True
     save_fig = False
     normalize_local_scores = False
+    print("here")
+    print(len(local_scores), automated_df.shape, premade_annotations_df.shape)
+    print(premade_annotations_df.columns)
     local_line_graph(local_scores,
         wav_path,
         SR,
@@ -90,7 +94,13 @@ def get_wav(filename, dataset_type):
     else:
         print(f"Dataset: {dataset_type} does not exist")
         return None
-    
+def new_get_premade_annotations(filename, csv_path):
+    premade_annotations_df = pd.read_csv(csv_path)
+    premade_annotations_df = premade_annotations_df[premade_annotations_df["IN FILE"] == filename]
+    if len(premade_annotations_df) == 0:
+        print(f"No premade annotations for file: {filename}")
+    premade_annotations_df = premade_annotations_df[["OFFSET", "DURATION", "MANUAL ID"]]
+    return premade_annotations_df
 
 def get_premade_annotations(filename, csv, dataset_type):
     if dataset_type =="NIPS":

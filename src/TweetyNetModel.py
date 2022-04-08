@@ -5,11 +5,11 @@ from matplotlib import pyplot as plt
 import torch
 
 from torch.utils.data import DataLoader
-from network import TweetyNet
-from EvaluationFunctions import frame_error, syllable_edit_distance
+from src.network import TweetyNet
+from src.EvaluationFunctions import frame_error, syllable_edit_distance
 #from microfaune.audio import wav2spc, create_spec, load_wav
-from TweetyNetAudio import wav2spc, create_spec, load_wav, get_time
-from CustomAudioDataset import CustomAudioDataset
+from src.TweetyNetAudio import wav2spc, create_spec, load_wav, get_time
+from src.CustomAudioDataset import CustomAudioDataset
 from datetime import datetime
 from tqdm import tqdm
 
@@ -401,7 +401,6 @@ class TweetyNetModel:
                 pred = torch.argmax(output, dim=1)
                 pred = pred.reshape(pred.shape[1])
                 labels = labels.reshape(labels.shape[1])
-
                 #print(uids.shape, pred.shape, labels.shape)
                 d = {"uid": uids[0], "pred": pred, "label": labels}
                 new_preds = pd.DataFrame(d)

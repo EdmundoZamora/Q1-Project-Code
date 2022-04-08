@@ -43,8 +43,8 @@ def main(targets):
     local_scores, predictions = evaluate_a_wav(data_path, csv_path, model_weights_path)
     #predictions.to_csv(f"{f}test_predictions.csv")
     #only use pyha_visualization on the whold clip
-    pyha_visualization(local_scores, data_path)
-
+    pyha_visualization(local_scores, data_path, csv_path)
+    return None
     data_path = data = os.path.join('data', 'raw', 'NIPS4B_BIRD_CHALLENGE_TRAIN_TEST_WAV' )
     folder = os.path.join("train")
     with open('config/spectrogram-params.json') as fh:
