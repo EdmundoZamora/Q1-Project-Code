@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 import torch
-
+from tqdm import tqdm
 from torch.utils.data import DataLoader
 from src.network import TweetyNet
 from src.EvaluationFunctions import frame_error, syllable_edit_distance
@@ -82,15 +82,15 @@ class TweetyNetModel:
         if show_plots:
             plt.show()
 
-        plt.figure(figsize=(9, 6))
-        plt.title("Edit Distance")
-        plt.plot(history["edit_distance"])
-        plt.plot(history["val_edit_distance"])
-        plt.legend(["edit_distance", "val_edit_distance"])
-        if save_plots:
-            plt.savefig('edit_distance.png')
-        if show_plots:
-            plt.show()
+        # plt.figure(figsize=(9, 6))
+        # plt.title("Edit Distance")
+        # plt.plot(history["edit_distance"])
+        # plt.plot(history["val_edit_distance"])
+        # plt.legend(["edit_distance", "val_edit_distance"])
+        # if save_plots:
+        #     plt.savefig('edit_distance.png')
+        # if show_plots:
+        #     plt.show()
 
     def reset_weights(self):
         for name, module in self.model.named_children():
@@ -134,7 +134,6 @@ class TweetyNetModel:
 
         end_time = datetime.now()
         self.runtime = end_time - start_time
-
         if save_me: # save to temp?
             date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
             # torch.save(self.model.state_dict(), os.path.join(outdir,f"model_weights-{date_str}.h5"))
@@ -164,8 +163,8 @@ class TweetyNetModel:
                    "val_loss": [],
                    "acc": [],
                    "val_acc": [],
-                   "edit_distance": [],
-                   "val_edit_distance": [],
+                #    "edit_distance": [],
+                #    "val_edit_distance": [],
                    "best_weights" : 0
                    }
         #add in early stopping criteria and saving best weights at each epoch
@@ -198,21 +197,17 @@ class TweetyNetModel:
                 # print(labels.shape) # torch.Size([64, 86])
 
                 loss = self.criterion(output, labels)
-
                 loss.backward()
+
                 self.optimizer.step()
                 scheduler.step()
 
                 # get statistics
                 running_loss += loss.item()
                 output = torch.argmax(output, dim=1)
-                correct += (output == labels).float().sum()
-                #for j in range(len(labels)):
-                #    edit_distance += syllable_edit_distance(output[j], labels[j])
 
-                # print update Improve this to make it better Maybe a global counter
-                #if i % 10 == 9:  # print every 10 mini-batches
-                #    print('[%d, %5d] loss: %.3f' % (e + 1, i + 1, running_loss ))
+                correct += (output == labels).float().sum()
+                
                 loop.set_description(f"Epoch [{e}/{epochs}]")
                 loop.set_postfix(loss = loss.item(), acc = 100*float((output == labels).float().sum())/(len(data[1]) * self.model.input_shape[-1]))
                     
@@ -220,7 +215,6 @@ class TweetyNetModel:
             history["acc"].append(100 * correct / (len(train_loader.dataset) * self.model.input_shape[-1]))
             print("Running Accuracy: ", 100 * float(correct / (len(train_loader.dataset) * self.model.input_shape[-1])))
             print("Running Loss: ", running_loss)
-            #history["edit_distance"].append(edit_distance / (len(train_loader.dataset) * self.model.input_shape[-1]))
             if val_loader != None:
                 self.validation_step(val_loader, history)
         print('Finished Training')
@@ -283,7 +277,7 @@ class TweetyNetModel:
         st_time = []
         dataiter = iter(test_loader)
         label, _, _ = dataiter.next()
-        print(label.shape)
+        # print(label.shape)
         for i in range(label.shape[-1]): # will change to be more general, does it only for one trainfile?
             st_time.append(get_time(i, hop_length, sr))
         st_time = np.array(st_time)
@@ -456,3 +450,5 @@ def prediction_fix(new_preds, number_time_bins):
 
     nips_fix = pd.concat(nips_fix)
     return nips_fix
+     
+

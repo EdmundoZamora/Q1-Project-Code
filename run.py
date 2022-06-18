@@ -1,7 +1,7 @@
 import os
 import sys
 import json 
-
+import torch
 sys.path.insert(0, 'src')
 
 #region 
@@ -12,10 +12,10 @@ sys.path.insert(0, 'src')
 # perform on a docker container <-- current challenge CURR
 # endregion get cuda to work. works on tweety, slow on gpu if epochs low?
 
-import env_setup
-from etl import get_data
-from NIPS_training import apply_features, model_build, evaluate
-from Audio_Data_Augmentation import create_augmentation
+import src.env_setup
+from src.etl import get_data
+from src.NIPS_training import apply_features, model_build, evaluate
+from src.Audio_Data_Augmentation import create_augmentation
 
 def main(targets):
     '''
@@ -28,20 +28,21 @@ def main(targets):
     including skip in the targets skips the data downloading step.
     `main` runs the targets in order of data=>features=>model=>classifications.
     '''
+    torch.manual_seed(0)
 
     if 'data' in targets:
         if "skip" in targets:
             Skip = True
         else:
             Skip = False
-            env_setup.make_datadir() # removes each time, handles manually deleting     
+            src.env_setup.make_datadir() # removes each time, handles manually deleting     
 
         with open('config/data-params.json') as fh:
             data_cfg = json.load(fh)
         # make the data target
         data = get_data(Skip, **data_cfg)
 
-    if 'augment' in targets:
+    if 'augment' in targets: # in progress
         if "skip" in targets:
             Skip = True
         else:

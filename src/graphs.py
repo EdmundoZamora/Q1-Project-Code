@@ -4,7 +4,7 @@ import matplotlib.pyplot as pl
 
 import seaborn as sns
 import matplotlib.pyplot as plt
-
+import plotly.express as px
 
 
 '''
@@ -24,7 +24,7 @@ def file_graph_temporal(num_graphs):
     #endregion
 
     os.makedirs(os.path.join("data","out","temporal_plots"))
-    for i in range(len(filenames)):
+    for i in range(num_graphs): #len(filenames)
 
         evals = pd.read_csv(os.path.join("data/out/separate_evaluations",filenames[i])) 
 
@@ -55,8 +55,7 @@ def file_graph_temporal(num_graphs):
         # dfm_viz.loc[(dfm_viz.bin == 'cfnmtx' ) & (dfm_viz.Presence == 'FN'), "bin"] = "FN"
         '''
 
-        sns.set_theme()
-        g = sns.catplot(x="temporal_frame_start_times", y='bin', kind="swarm",height = 3,aspect = 6,data= dfm_viz)
+        
         
         '''
         # g = sns.scatterplot(data=dfm_viz, x="temporal_frame_start_times", y="Presence", hue="bin")
@@ -66,18 +65,27 @@ def file_graph_temporal(num_graphs):
         # g.yaxis.set_major_locator(ticker.MultipleLocator(1)) 
         # g.set(title='Penguins: Body Mass by Species for Gender')
         '''
-
-        g.fig.subplots_adjust(top=0.9)
-        g.fig.suptitle(title)
-        g.set(ylabel=None)
+        
 
         #region
         # g.tick_params(bottom=False)
         # pl.show()
         #endregion
+        # sns.set_theme()
+        # g = sns.catplot(x="temporal_frame_start_times", y='bin', kind="swarm",height = 3,aspect = 6,data= dfm_viz)
+        # g.fig.subplots_adjust(top=0.9)
+        # g.fig.suptitle(title)
+        # g.set(ylabel=None)
+        # g.savefig(os.path.join("data/out/temporal_plots",filenames[i][:-4]+'_temporal_plot'))
+        # plt.close('all')
 
-        g.savefig(os.path.join("data/out/temporal_plots",filenames[i][:-4]+'_temporal_plot'))
-        plt.close('all')
+        fig = px.scatter(dfm_viz, y='bin', x="temporal_frame_start_times", color="bin", width=800,height=400) #, width=5*800,height=400,
+        fig.update_traces(marker_size=5)
+        fig.update_layout(title_text = title, title_x=0.5,legend_title_text='Annotation',yaxis_title=None)
+        # fig.update_yaxes(visible=False, showticklabels=True)
+        # fig.show()
+        fig.write_image(file=os.path.join("data/out/temporal_plots",filenames[i][:-4]+'_temporal_plot.png'), format='png')
+        fig.write_html(file=os.path.join("data/out/temporal_plots",filenames[i][:-4]+'_temporal_plot.html'))
 
 # file_graph_temporal(2)
 
@@ -98,14 +106,15 @@ def file_graph_temporal_rates(num_graphs):
     # os.makedirs(os.path.join("data","out","temporal_plots"))
     #endregion
 
-    for i in range(len(filenames)):
+    for i in range(num_graphs): #len(filenames)
+        print(filenames[i])
         evals = pd.read_csv(os.path.join("data/out/separate_evaluations",filenames[i])) 
 
         title = evals['file'].unique()[0]
 
         to_plot = evals[['pred','label','temporal_frame_start_times','cfnmtx']].copy(True) #,'cfnmtx'
 
-        dfm = to_plot.melt("temporal_frame_start_times", var_name='bin', value_name='vals')
+        # dfm = to_plot.melt("temporal_frame_start_times", var_name='bin', value_name='vals')
 
         viz = to_plot.copy(True)
 
@@ -117,6 +126,7 @@ def file_graph_temporal_rates(num_graphs):
         # comment out if absence is wanted on graph
         dfm_viz.drop(dfm_viz[dfm_viz['Presence'] == 0].index, inplace = True)
         # dfm_viz.drop(dfm_viz[dfm_viz['Presence'] == 1].index, inplace = True)
+        print(dfm_viz.shape)
 
         # more chart info
         '''
@@ -129,9 +139,7 @@ def file_graph_temporal_rates(num_graphs):
         dfm_viz.loc[(dfm_viz.bin == 'cfnmtx' ) & (dfm_viz.Presence == 'FP'), "bin"] = "FP"
         dfm_viz.loc[(dfm_viz.bin == 'cfnmtx' ) & (dfm_viz.Presence == 'FN'), "bin"] = "FN"
 
-        sns.set_theme()
-        g = sns.catplot(x="temporal_frame_start_times", y='bin', kind="swarm",height = 3,aspect = 6,data= dfm_viz)
-        
+    
         '''
         # g = sns.scatterplot(data=dfm_viz, x="temporal_frame_start_times", y="Presence", hue="bin")
         # g.set(rc={'figure.figsize':(12,8.27)})
@@ -140,11 +148,25 @@ def file_graph_temporal_rates(num_graphs):
         # g.yaxis.set_major_locator(ticker.MultipleLocator(1)) 
         # g.set(title='Penguins: Body Mass by Species for Gender')
         '''
-
-        g.fig.subplots_adjust(top=0.9)
-        g.fig.suptitle(title)
-        g.set(ylabel=None)
+        
         # g.tick_params(bottom=False)
         # pl.show()
-        g.savefig(os.path.join("data/out/temporal_plots",filenames[i][:-4]+'_temporal_plot_rate'))
-        plt.close('all')
+        # sns.set_theme()
+        # g = sns.catplot(x="temporal_frame_start_times", y='bin', kind="swarm",height = 3,aspect = 6,data= dfm_viz)
+        # g.fig.subplots_adjust(top=0.9)
+        # g.fig.suptitle(title)
+        # g.set(ylabel=None)
+        # g.savefig(os.path.join("data/out/temporal_plots",filenames[i][:-4]+'_temporal_plot_rate'))
+        # plt.close('all')
+
+        fig = px.scatter(dfm_viz, y='bin', x="temporal_frame_start_times", color="bin",width=800,height=400)#, width=5*800,height=400,
+        fig.update_traces(marker_size=5)
+        fig.update_layout(title_text = title, title_x=0.5,legend_title_text='Annotation',yaxis_title=None)
+        # fig.update_yaxes(visible=False, showticklabels=True)
+        # fig.show()
+        fig.write_image(file=os.path.join("data/out/temporal_plots",filenames[i][:-4]+'_temporal_plot_rates.png'), format='png')
+        fig.write_html(file=os.path.join("data/out/temporal_plots",filenames[i][:-4]+'_temporal_plot_rates.html'))
+
+
+
+# file_graph_temporal(10)

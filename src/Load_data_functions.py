@@ -63,7 +63,6 @@ def window_spectrograms(spc, Y, uid, time_bin, windowsize):
     uid_split = [str(i) + "_" + uid for i in range(freq_axis)]
     return spc_split, Y_split, uid_split
 
-#incoorporate this to current things. 
 def split_dataset(X, Y, test_size=0.2, random_state=0):
     split_generator = StratifiedShuffleSplit(n_splits=1, test_size=test_size, random_state=random_state)
     ind_train, ind_test = next(split_generator.split(X, Y))
@@ -156,9 +155,12 @@ def new_load_dataset(data_path, folder, csv_path, SR, n_mels, frame_size, hop_le
 def new_load_and_window_dataset(data_path, folder, csv_path, SR, n_mels, frame_size, hop_length, windowsize):
     x, y, uids, time_bins = new_load_dataset(data_path, folder, csv_path, SR, n_mels, frame_size, hop_length, use_dump=True)
     dataset = window_data(x, y, uids, time_bins, windowsize)
-    X = dataset['X']
-    Y = dataset['Y']
-    UIDS = dataset['uids']
+
+    X = np.array(dataset["X"]).astype(np.float32)/255
+    X = X.reshape(X.shape[0], 1, X.shape[1], X.shape[2])
+    Y = np.array(dataset["Y"]).astype(np.longlong)
+    # Y = Y.reshape(Y.shape[1], Y.shape[2])
+    UIDS = np.array(dataset["uids"])
     return X, Y, UIDS
 
 
@@ -294,11 +296,12 @@ def load_wav_and_annotations(data_path, csv_path, SR=44100, n_mels=86, frame_siz
     x, y, uids, time_bins = new_load_file(data_path, csv_path, SR, n_mels, frame_size, hop_length)
     dataset = window_data(x, y, uids, time_bins, windowsize)
     X = np.array(dataset['X'])
-    print(X.shape)
+    # print(X.shape)
     X = X.reshape(X.shape[0], 1, X.shape[1], X.shape[2])
-    print(X.shape)
+    # print(X.shape)
 
-    Y = np.array([dataset["Y"]])#.astype(np.longlong)
+    uid = uid.reshape(uid.shape[1])
+    Y = np.array([dataset["Y"]]).astype(np.longlong)
     Y = Y.reshape(Y.shape[1], Y.shape[2])
     UIDS = np.array([dataset["uids"]])
     UIDS = UIDS.reshape(UIDS.shape[1])
@@ -307,8 +310,6 @@ def load_wav_and_annotations(data_path, csv_path, SR=44100, n_mels=86, frame_siz
 
 ## End portion
 ##############
-
-#add windowing and make it generic
 
 #multi class
 #strongly labeled binary
